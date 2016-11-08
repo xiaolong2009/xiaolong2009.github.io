@@ -59,104 +59,6 @@
       
     
       
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
         <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/about/">About</a>
       
     
@@ -188,83 +90,6 @@
 
 
 <div class="posts">
-  
-    <div class="post">
-        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/09/25/django-db%E4%BD%BF%E7%94%A8mysql%E8%BF%9E%E6%8E%A5%E6%B1%A0/">Django db使用MySQL连接池</a></h1>
-        <span class="post-date">Sep 25 2016</span>
-        <p>Django db模块本身不支持MySQL连接池，只有一个配置<code>CONN_MAX_AGE</code>连接最大存活时间，如果WSGI服务器使用了线程池技术，会达到连接复用的效果。但是如果WSGI服务如果是每个请求都创建新的线程，那么这个配置没有任何效果，因为连接保存在<code>Thread.local()</code>名称空间中，在不同的线程中不能复用。</p>
-
-<p>在上一篇<a href="https://zhu327.github.io/2016/09/25/greentor-mysql连接池实现/">greentor MySQL连接池实现</a>中已经实现了MySQL连接池，只需要重写Django MySQL backend以支持连接池，就能达到连接复用的目的，减少socket 3次握手的开销，提高性能。</p>
-
-<p><a href="https://github.com/zhu327/greentor/blob/master/demo/core/base.py">https://github.com/zhu327/greentor/blob/master/demo/core/base.py</a></p>
-
-<p></p>
-    </div>
-  
-    <div class="post">
-        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/06/24/greentor%E5%A1%AB%E5%9D%91%E8%AE%B0/">greentor填坑记</a></h1>
-        <span class="post-date">Jun 24 2016</span>
-        <p>经过2周的学习开发，Tornado + Django ORM的环境搭好了，这阶段的学习告一段落，虽然这个环境是一个玩具环境，没有经过生产的检验，但是在搭环境的过程中学习了Tornado，greenlet，Django数据库相关的姿势，感觉还是有不少提升。</p>
-
-<p>在这2天的调试中，暴露出了2个比较严重的问题，记录下填坑过程。</p>
-
-<h3 id="1-线程安全">1. 线程安全</h3>
-
-<p>WSGI服务器在接受到新的http请求时会开一个新线程来调用application进行处理，Django ORM在有数据库查询的时候，会在当前线程中创建一个新的数据库连接并保存到线程local空间中，在同一个线程中的连接是可以被复用的。不同的线程持有不同的连接，这样就保证Django ORM是线程安全的。</p>
-
-<p>Tornado是单线程的，在Tornado中使用Django ORM无论处理多少请求，都会用同一个保存在当前local()中的连接，这样就必然会产生连接使用的冲突。比如同时并发的2个请求，第一个请求关闭了连接，第二个请求还在继续使用这个连接就会抛出异常。</p>
-
-<p>在greentor的配合下，Tornado涉及数据库连接的请求都运行在greenlet中，如果有一个greenlet local来对每个请求的数据库连接进行隔离，就能避免线程安全问题，在这里的greenlet协程完全可以类比为线程。然而greenlet并没有local，那我们就造一个local出来。</p>
-
-<p></p>
-    </div>
-  
-    <div class="post">
-        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/06/21/greentor-tornado%E5%BC%82%E6%AD%A5%E6%96%B9%E6%A1%88/">greentor Tornado异步方案</a></h1>
-        <span class="post-date">Jun 21 2016</span>
-        <blockquote>
-<p><a href="https://emptysqua.re/blog/motor-internals-how-i-asynchronized-a-synchronous-library/">https://emptysqua.re/blog/motor-internals-how-i-asynchronized-a-synchronous-library/</a></p>
-</blockquote>
-
-<p>这篇文章是Motor的作者介绍Motor如何通过Greenlet来实现PyMongo在Tornado中异步调用的原理，总结来说就一下几点。</p>
-
-<ol>
-<li>使用Torando的IOStream包装socket以实现异步调度</li>
-<li>把IOStream的读写操作放在greenlet中运行，并注册一个switch到当前greenlet的callback到IOStream的Futrue中</li>
-<li>在发生读写操作是switch到当前greenlet的父greenlet继续执行，挂起当前greenlet</li>
-<li>在IOStream的读写操作完成后调用callback switch到挂起的子greenlet中继续执行</li>
-</ol>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">tornado_motor_sock_method</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
-    <span class="n">coro</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">coroutine</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
-
-    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c">#当前greenlet是一个子greenlet</span>
-        <span class="n">child_gr</span> <span class="o">=</span> <span class="n">greenlet</span><span class="o">.</span><span class="n">getcurrent</span><span class="p">()</span>
-        <span class="c">#获取当前greenlet的父greenlet，即之前代码提到过的asynchronize所在的greenlet</span>
-        <span class="n">main</span> <span class="o">=</span> <span class="n">child_gr</span><span class="o">.</span><span class="n">parent</span>
-
-        <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">future</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">future</span><span class="o">.</span><span class="n">exc_info</span><span class="p">():</span>
-                <span class="n">child_gr</span><span class="o">.</span><span class="n">throw</span><span class="p">(</span><span class="o">*</span><span class="n">future</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">():</span>
-                <span class="n">child_gr</span><span class="o">.</span><span class="n">throw</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c">#当future的结果到达，切换回挂起的子greenlet</span>
-                <span class="n">child_gr</span><span class="o">.</span><span class="n">switch</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
-
-        <span class="c">#保证callback在当前greenlet的父greenlet中运行</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_future</span><span class="p">(</span><span class="n">coro</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">callback</span><span class="p">)</span>
-        <span class="c">#return这句会暂时挂起当前greenlet，将控制权切换回父greenlet，</span>
-        <span class="c">#在上面的callback执行时，才会切换回当前greenlet，return语句返回</span>
-        <span class="k">return</span> <span class="n">main</span><span class="o">.</span><span class="n">switch</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">wrapped</span>
-</code></pre></div>
-
-<p>使用greenlet的好处是我们可以通过这个挂起，唤醒的过程来中断当前的同步代码，而不需要用Tornado自己实现协程，每次都要yield出来，然后回调。通过使用greenlet可以很方便的把同步的网络IO库修改为支持Tornado的异步库。</p>
-
-<p></p>
-    </div>
   
     <div class="post">
         <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/06/16/python%E5%8D%8F%E7%A8%8B/">Python协程</a></h1>
@@ -318,11 +143,139 @@
 <p></p>
     </div>
   
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/05/16/django-save%E6%96%B9%E6%B3%95%E7%9A%84update_fields%E5%8F%82%E6%95%B0/">Django save方法的update_fields参数</a></h1>
+        <span class="post-date">May 16 2016</span>
+        <p>在Django中对Model对象的属性赋值，并使用save方法，save方法并不会检测Model对象变更了什么属性，而是会使用<code>update</code>语句set所有的field为当前的值，也就是说只修改了部分字段，也会update所有字段的值，这样会导致2个问题:</p>
+
+<ol>
+<li>SQL语句过大，导致SQL执行慢(一般也不会有什么影响)</li>
+<li>如果同时操作同一个Model对象，更新不同的字段，后save的操作会用老的值覆盖掉早点操作的值</li>
+</ol>
+
+<p>所以推荐在调用save方法的时候传<code>update_fields</code>参数，但是这样就要求我们必须对每次save的fields都在代码中记下来，不是很方便，所以开发一个通用的专门用来处理update_fields参数的Mixin类来解决这个问题。</p>
+
+<p></p>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/05/14/django%E9%AA%8C%E8%AF%81%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E7%99%BB%E5%BD%95%E9%AA%8C%E8%AF%81%E7%A0%81%E5%B1%95%E7%A4%BA%E7%AD%96%E7%95%A5/">Django验证码实现与登录验证码展示策略</a></h1>
+        <span class="post-date">May 14 2016</span>
+        <p>Django实现验证码有很多现成可用的库，Google后选择<a href="https://github.com/mbi/django-simple-captcha">Django Simple Captcha</a>，需要做一些展示与表单验证方面的定制。</p>
+
+<h3 id="验证码展示">验证码展示</h3>
+
+<p>默认的验证码展示形式不是很适合我们网站的样式，所以在settings中做了一些定制。</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># 验证码设置</span>
+<span class="n">CAPTCHA_FOREGROUND_COLOR</span> <span class="o">=</span> <span class="s">&#39;#d83a46&#39;</span> <span class="c"># 验证码字体颜色</span>
+<span class="n">CAPTCHA_BACKGROUND_COLOR</span> <span class="o">=</span> <span class="s">&#39;#f5f5f5&#39;</span> <span class="c"># 验证码背景颜色</span>
+<span class="n">CAPTCHA_NOISE_FUNCTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;captcha.helpers.noise_dots&#39;</span><span class="p">,)</span> <span class="c"># 验证码混淆配置，这里设置的点点</span>
+<span class="n">CAPTCHA_CHALLENGE_FUNCT</span> <span class="o">=</span> <span class="s">&#39;random_char_challenge&#39;</span> <span class="c"># 验证码生成函数配置</span>
+</code></pre></div>
+
+<p>为了提供验证码的识别率，定制了一个随机字符串生成函数来生成验证码。</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># coding: utf-8</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">captcha.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">u</span>
+
+<span class="k">def</span> <span class="nf">random_char_challenge</span><span class="p">():</span>
+    <span class="n">chars</span><span class="p">,</span> <span class="n">ret</span> <span class="o">=</span> <span class="n">u</span><span class="p">(</span><span class="s">&#39;acefghkprtuvwxy34679&#39;</span><span class="p">),</span> <span class="n">u</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">CAPTCHA_LENGTH</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">ret</span>
+</code></pre></div>
+
+<p></p>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/03/11/django-model-trace-%E6%A8%A1%E5%9E%8B%E5%8F%98%E6%9B%B4%E8%B7%9F%E8%B8%AA/">Django Model Trace 模型变更跟踪</a></h1>
+        <span class="post-date">Mar 11 2016</span>
+        <p>在公司业务中有很多模块需要记录模型的变更历史，刚开始的时候会针对需要变更记录的表增加一个变更记录表，然后做针对性的开发。后来类似的需求多了，而且不需要很详细的记录，所以单独提取了一个比较简单的模型跟踪模块出来。</p>
+
+<h3 id="原理">原理</h3>
+
+<p>使用Django自己的信号实现，创建了一个公用的model跟踪表，所有配置跟踪的model变更记录都会保存到这张表中，通过一个公用的<code>trace_model</code>函数来保存变更的新老数据，而且只保存修改的字段。</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># coding=utf-8</span>
+
+<span class="kn">import</span> <span class="nn">inspect</span><span class="o">,</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">ManyToManyField</span><span class="p">,</span> <span class="n">ManyToOneRel</span>
+<span class="kn">from</span> <span class="nn">django.db.models.fields.related</span> <span class="kn">import</span> <span class="n">ForeignKey</span>
+<span class="kn">from</span> <span class="nn">raven.contrib.django.models</span> <span class="kn">import</span> <span class="n">client</span>
+<span class="kn">from</span> <span class="nn">models</span> <span class="kn">import</span> <span class="n">ModelRecord</span>
+
+
+<span class="k">def</span> <span class="nf">trace_model</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">using</span><span class="p">,</span> <span class="n">update_fields</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">adding</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">sender</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+        <span class="n">change_fields</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">sender</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_all_field_names</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;add_by&#39;</span><span class="p">,</span> <span class="s">&#39;add_dt&#39;</span><span class="p">,</span> <span class="s">&#39;update_by&#39;</span><span class="p">,</span> <span class="s">&#39;update_dt&#39;</span><span class="p">,</span> <span class="s">&#39;update_by_id&#39;</span><span class="p">):</span> <span class="c"># 更新人，添加人，时间不记录</span>
+                <span class="k">continue</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="n">sender</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">auto_created</span> <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">hidden</span> <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">__class__</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ManyToManyField</span><span class="p">,</span> <span class="n">ManyToOneRel</span><span class="p">):</span> <span class="c"># 特殊的字段不记录</span>
+                <span class="k">continue</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">new</span><span class="p">):</span> <span class="c"># 不同类型的字段转为字符串，相等的不记录</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">):</span><span class="c"># 如果是外键</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">change_fields</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">old</span><span class="p">:</span>
+                        <span class="n">old</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">related_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">old</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
+                        <span class="n">new</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">related_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">new</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span><span class="o">+</span><span class="s">&#39;_id&#39;</span> <span class="ow">in</span> <span class="n">change_fields</span><span class="p">:</span>
+                    <span class="k">pass</span> <span class="c"># 判断避免同时对外键赋值的清空</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">old</span><span class="p">:</span>
+                    <span class="n">old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;get_&#39;</span><span class="o">+</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&#39;_display&#39;</span><span class="p">,</span> <span class="n">old</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
+                    <span class="n">new</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s">&#39;get_&#39;</span><span class="o">+</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&#39;_display&#39;</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">old</span><span class="p">):</span>
+                    <span class="n">old</span> <span class="o">=</span> <span class="n">old</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">new</span><span class="p">):</span>
+                    <span class="n">new</span> <span class="o">=</span> <span class="n">new</span><span class="p">()</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="k">if</span> <span class="n">old</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="s">&#39;空&#39;</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="k">if</span> <span class="n">new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="s">&#39;空&#39;</span>
+            <span class="n">verbose_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s">&#39;verbose_name&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">change_fields</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">verbose_name</span><span class="p">,</span>
+                <span class="s">&#39;new&#39;</span><span class="p">:</span> <span class="n">new</span><span class="p">,</span>
+                <span class="s">&#39;old&#39;</span><span class="p">:</span> <span class="n">old</span>
+            <span class="p">}</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="s">&#39;_database&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;NAME&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">frame_record</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">frame_record</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get_response&#39;</span><span class="p">:</span>
+                <span class="n">request</span> <span class="o">=</span> <span class="n">frame_record</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+                <span class="k">break</span>
+        <span class="c"># 数据入库</span>
+        <span class="k">if</span> <span class="n">change_fields</span> <span class="ow">and</span> <span class="s">&#39;user&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
+            <span class="n">ModelRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span>
+                                       <span class="n">table_name</span><span class="o">=</span><span class="n">sender</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">db_table</span><span class="p">,</span>
+                                       <span class="n">table_pk</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                                       <span class="n">content</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">change_fields</span><span class="p">),</span>
+                                       <span class="n">add_by</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">captureException</span><span class="p">()</span>
+</code></pre></div>
+
+<p></p>
+    </div>
+  
 </div>
 
 <div class="pagination">
   
-  <a class="pagination-item older" href="https://xiaolong2009.github.io/page/2/">Older</a>
+  <span class="pagination-item older">Older</span>
   
 
   
