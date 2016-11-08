@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Elasticsearch 数据索引操作 &middot; V2GO
+    
+  </title>
+
+  
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/poole.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/syntax.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.proxy.ustclug.org/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://xiaolong2009.github.io/assets/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="https://xiaolong2009.github.io/assets/favicon.ico">
+
+  
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="https://xiaolong2009.github.io/feed.xml">
+</head>
+
+
+  <body class="theme-base-0d">
+
+    
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>My notes and thoughts.</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/">Home</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/post">Posts</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/tags">Tags</a>
+
+    
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+        <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/about/">About</a>
+      
+    
+
+    <a class="sidebar-nav-item" href="https://github.com/xiaolong2009" target="_blank">GitHub</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="https://xiaolong2009.github.io/" title="Home">V2GO</a>
+            <small>Way to Coding</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+
+
+<div class="post">
+  <h1 class="post-title">Elasticsearch 数据索引操作</h1>
+  <span class="post-date">Nov 24 2015</span>
+  <p>开始一系列的搜索相关的学习，包括并不限于<br />
+Django<br />
+Haystack<br />
+Elasticsearch<br />
+IK中文分词<br />
+分词字典</p>
+
+<h2 id="简单搜索">简单搜索</h2>
+
+<p></p>
+
+<h3 id="1-dsl搜索">1. DSL搜索</h3>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span> <span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;match&quot;</span> <span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;last_name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Smith&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="2-过滤搜索">2. 过滤搜索</h3>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span> <span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;filtered&quot;</span> <span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;filter&quot;</span> <span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;range&quot;</span> <span class="o">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;age&quot;</span> <span class="o">:</span> <span class="p">{</span> <span class="s2">&quot;gt&quot;</span> <span class="o">:</span> <span class="mi">30</span> <span class="p">}</span> <span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;query&quot;</span> <span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;match&quot;</span> <span class="o">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;last_name&quot;</span> <span class="o">:</span> <span class="s2">&quot;smith&quot;</span> <span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><code>filter</code>表示过滤条件，这里会过滤掉age大于30
+<code>range</code>是区间过滤器</p>
+
+<h3 id="3-全文搜索">3. 全文搜索</h3>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span> <span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;match&quot;</span> <span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;about&quot;</span> <span class="o">:</span> <span class="s2">&quot;rock climbing&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>匹配<code>about</code>字段，中与&rdquo;rock climbing&rdquo;相似的文档</p>
+
+<h3 id="4-短语搜索">4.短语搜索</h3>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span> <span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;match_phrase&quot;</span> <span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;about&quot;</span> <span class="o">:</span> <span class="s2">&quot;rock climbing&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>只匹配与&rdquo;rock climbing&rdquo;相同的文档</p>
+
+<h3 id="5-高亮">5. 高亮</h3>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span> <span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;match_phrase&quot;</span> <span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;about&quot;</span> <span class="o">:</span> <span class="s2">&quot;rock climbing&quot;</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;highlight&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;fields&quot;</span> <span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;about&quot;</span> <span class="o">:</span> <span class="p">{}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="elastic索引">Elastic索引</h2>
+
+<h3 id="创建索引">创建索引</h3>
+
+<p>POST /indeces/types/ 自增生成id</p>
+
+<p>PUT /indeces/types/id/ 指定id</p>
+
+<h3 id="获取数据">获取数据</h3>
+
+<p>GET /indeces/types/id/</p>
+
+<p>GET /indeces/types/id/?_source=title 只获取对象的title字段，多个字段用,分隔</p>
+
+<p>GET /indeces/types/id/?_source 只要对象的数据，不要其它的元数据</p>
+
+<h3 id="是否存在">是否存在</h3>
+
+<p>HEAD /indeces/types/id/ 200存在，404不存在</p>
+
+<h3 id="更新">更新</h3>
+
+<p>PUT /indeces/types/id/ 可以完全覆盖更新，数据的<code>_version</code>值会+1，<code>created</code>如果为true，表示为新建，false表示为覆盖更新</p>
+
+<h3 id="创建判断">创建判断</h3>
+
+<p>PUT /indeces/types/id/_create
+PUT /indeces/types/id/?op_type=create</p>
+
+<p>如果同id的对象已存在会报错409</p>
+
+<h3 id="删除">删除</h3>
+
+<p>DELETE /indeces/types/id/ 200删除成功，404资源不存在，如果200，对象的<code>_version</code>会+1</p>
+
+<h3 id="局部更新">局部更新</h3>
+
+<p>POST /website/blog/1/_update</p>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+    <span class="s2">&quot;doc&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">field</span><span class="o">:</span> <span class="c1">// 需要更新的字段</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="mget">Mget</h2>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">GET</span> <span class="o">/</span><span class="nx">_mget</span>
+<span class="p">{</span>
+    <span class="s2">&quot;docs&quot;</span><span class="o">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;_indeces&quot;</span><span class="o">:</span>
+            <span class="s2">&quot;_types&quot;</span><span class="o">:</span>
+            <span class="s2">&quot;_id&quot;</span><span class="o">:</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;_indeces&quot;</span><span class="o">:</span>
+            <span class="s2">&quot;_types&quot;</span><span class="o">:</span>
+            <span class="s2">&quot;_id&quot;</span><span class="o">:</span>
+            <span class="s2">&quot;_source&quot;</span><span class="o">:</span> <span class="p">[]</span>
+        <span class="p">},</span>
+        <span class="p">...</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>返回的数据顺序同请求的数据</p>
+<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">GET</span> <span class="o">/</span><span class="nx">indeces</span><span class="o">/</span><span class="nx">types</span><span class="o">/</span><span class="nx">_mget</span> <span class="c1">// 可以自定mget的默认indeces与types</span>
+</code></pre></div>
+
+<h2 id="批量操作">批量操作</h2>
+
+<p>POST /_bulk</p>
+<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="p">{</span> <span class="nx">action</span><span class="o">:</span> <span class="p">{</span> <span class="nx">metadata</span> <span class="p">}}</span>
+<span class="p">{</span> <span class="nx">request</span> <span class="nx">body</span>        <span class="p">}</span>
+</code></pre></div>
+
+<p>cation delete create index(创建或更新) update(局部更新)</p>
+
+
+</div>
+
+
+
+    <div class="ds-thread" data-thread-key="/2015/11/24/elasticsearch-%E6%95%B0%E6%8D%AE%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/" data-title="Elasticsearch 数据索引操作" data-url="https://xiaolong2009.github.io/2015/11/24/elasticsearch-%E6%95%B0%E6%8D%AE%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/"></div>
+
+
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"Xiaolong"};
+    (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';ds.async = true;
+        ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0]
+         || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+    </script>
+
+
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  </body>
+</html>
+

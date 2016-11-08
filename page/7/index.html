@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+	<meta name="generator" content="Hugo 0.17" />
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      V2GO &middot; Way to Coding
+    
+  </title>
+
+  
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/poole.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/syntax.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.proxy.ustclug.org/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://xiaolong2009.github.io/assets/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="https://xiaolong2009.github.io/assets/favicon.ico">
+
+  
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="https://xiaolong2009.github.io/feed.xml">
+</head>
+
+
+  <body class="theme-base-0d">
+
+    
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>My notes and thoughts.</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item  active " href="https://xiaolong2009.github.io/">Home</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/post">Posts</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/tags">Tags</a>
+
+    
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+        <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/about/">About</a>
+      
+    
+
+    <a class="sidebar-nav-item" href="https://github.com/xiaolong2009" target="_blank">GitHub</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="https://xiaolong2009.github.io/" title="Home">V2GO</a>
+            <small>Way to Coding</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+
+
+
+
+
+<div class="posts">
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/03/11/sae%E4%B8%8A%E7%94%A8kvdb%E5%81%9Adjango%E7%BC%93%E5%AD%98/">SAE上用kvdb做Django缓存</a></h1>
+        <span class="post-date">Mar 11 2015</span>
+        <p><a href="http://forum.sinaapp.com">Django forum</a>在SAE上开启了5M的memcached缓存空间，memcached是用空间计费的，所以在没什么流量的情况下每天也要用1云豆，以blog上的经验来看不用缓存的情况下mysql的消耗又比较大，所以权衡之后选择SAE自己实现的kvdb缓存后端来做缓存，这样缓存消耗的云豆可以忽略不计，又可以达到缓存加速的效果。</p>
+
+<p>参考Django自带的memcache缓存后端来写kvdb的缓存后端。在插入数据的时候添加一个超时时间戳，获取数据的时候判断数据是否超时，如超时则删除数据。另外在实现清空所有数据的时候kvdb没有实现相应的方法，我自己阅读kvdb文档后通过迭代key值来实现清空，有一个可能的问题是这个迭代删除最多只能一次删除100条数据。</p>
+
+<h3 id="实现">实现</h3>
+
+<p>基于<code>django.core.cache.backends.base.BaseCache</code>，对kvdb已有的接口进行重写适配，kvdb未实现的接口则沿用。</p>
+
+<blockquote>
+<p><a href="https://github.com/zhu327/forum/blob/sae/xp/cache.py">https://github.com/zhu327/forum/blob/sae/xp/cache.py</a></p>
+</blockquote>
+
+<p></p>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/02/15/%E8%AE%B0%E6%90%9C%E7%8B%97%E5%BE%AE%E4%BF%A1%E5%8F%B7%E6%90%9C%E7%B4%A2%E5%8F%8D%E7%88%AC%E8%99%AB/">记搜狗微信号搜索反爬虫</a></h1>
+        <span class="post-date">Feb 15 2015</span>
+        <h3 id="反爬虫">反爬虫</h3>
+
+<p><a href="https://github.com/zhu327/rss">RSS Factory</a>前段时间又出问题了，访问微信公众号RSS一直500，完全没法用了。</p>
+
+<p>经调试，发现由于爬取数据太频繁，触发了搜狗微信公众号的反爬虫，探索了下反爬虫的规则:</p>
+
+<ol>
+<li>没有带Cookie的情况下，频繁访问触发反爬虫</li>
+<li>带Cookie的情况下，频繁访问偶尔触发反爬出，偶现500错误</li>
+<li>不带Cookie情况下，隔几个小时范围一下不会触发反爬虫</li>
+</ol>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/01/31/python%E6%80%A7%E8%83%BD%E6%8F%90%E5%8D%87%E5%B0%8F%E8%B4%B4%E5%A3%AB/">Python性能提升小贴士</a></h1>
+        <span class="post-date">Jan 31 2015</span>
+         用xrange循环时代替range ''.join() 替代 + while 1替代while True 列表推到 &gt; for循环 &gt; while循环 用cProfile, cStringIO and cPickle 用局部变量好于全局变量 itertools用各种迭代器，生成器 用map, reduce, filter替代列表推倒或循环 判断 a in b时，字典与集合好于列表和元组  
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/01/31/django-forum%E6%80%BB%E7%BB%93/">Django forum总结</a></h1>
+        <span class="post-date">Jan 31 2015</span>
+        <p><a href="https://github.com/zhu327/forum">https://github.com/zhu327/forum</a></p>
+
+<p>元旦的时候决定开始学习Django，学习最好的方式无非边学边做，所以把2年前没敢看的一个Tornado项目通过用Django实现了，这里总结下。</p>
+
+<h3 id="models">models</h3>
+
+<ol>
+<li><p>扩展默认User类</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">AbstractUser</span>
+<span class="c"># 继承这个类即可</span>
+
+<span class="c"># setting中设置</span>
+<span class="n">AUTH_USER_MODEL</span> <span class="o">=</span> <span class="s">&#39;forum.ForumUser&#39;</span> <span class="c"># 指定用户对象使用的类</span>
+</code></pre></div>
+
+<p></p>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/01/31/cookie%E4%B8%8Esession/">Cookie与Session</a></h1>
+        <span class="post-date">Jan 31 2015</span>
+        <p>前面学习了Cookie，知道Cookie是在浏览器端保存的用户状态，但是对Session一直没什么概念。学习Django的过程中直接使用了Django的认证系统，虽然用到了Session但是没有接触到Session的直接使用，然后在学习F2E.im的代码中，发现Tornado自带的secret cookie其实也能加密传递cookie，通过cookie传递一个userid到用户浏览器，认证的时候使用userid到数据库中查找用户信息，也能很好的认证用户。那为什么要使用session呢。</p>
+
+<p>Tonado中认证示例:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># 重写tornado.web.RequestHandler中get_current_user方法用于认证</span>
+<span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user_id</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="o">.</span><span class="n">get_user_by_uid</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">user_id</span><span class="p">))</span> <span class="c"># 从数据库中取用户信息</span>
+</code></pre></div>
+
+<p></p>
+    </div>
+  
+</div>
+
+<div class="pagination">
+  
+  <a class="pagination-item older" href="https://xiaolong2009.github.io/page/8/">Older</a>
+  
+
+  
+  <a class="pagination-item newer" href="https://xiaolong2009.github.io/page/6/">Newer</a>
+  
+</div>
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  </body>
+</html>
+

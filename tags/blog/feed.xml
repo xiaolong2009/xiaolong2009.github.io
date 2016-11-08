@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title> </title>
+    <link>https://xiaolong2009.github.io/tags/blog/feed/index.xml</link>
+    <language>en-us</language>
+    <author>Xiaolong</author>
+    <rights>(C) 2016</rights>
+    <updated>0001-01-01 00:00:00 &#43;0000 UTC</updated>
+
+    
+      
+        <item>
+          <title>博客迁移到github</title>
+          <link>https://xiaolong2009.github.io/2016/04/13/%E5%8D%9A%E5%AE%A2%E8%BF%81%E7%A7%BB%E5%88%B0github/</link>
+          <pubDate>Wed, 13 Apr 2016 21:08:11 CST</pubDate>
+          <author>Xiaolong</author>
+          <guid>https://xiaolong2009.github.io/2016/04/13/%E5%8D%9A%E5%AE%A2%E8%BF%81%E7%A7%BB%E5%88%B0github/</guid>
+          <description>&lt;h3 id=&#34;为什么迁移&#34;&gt;为什么迁移&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/zhu327/blog&#34;&gt;blog&lt;/a&gt;算是我正式的第一个Python项目，是我入门Python的基石，一直稳定的运行在SAE上，上个月我还进行过一次升级，但是SAE的MySQL服务收费来得太突然，每年大概要花200软妹币，对于一个PaaS平台来说，我认为是不划算的，鉴于静态博客的流行，所以痛下决心迁移到github pages上来。&lt;/p&gt;
+
+&lt;h3 id=&#34;静态博客生成器的选择&#34;&gt;静态博客生成器的选择&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Jekyll&lt;br /&gt;
+Jekyll是静态博客生成器的鼻祖，拥有大量的模版，但是基于ruby导致文章较多的情况下会比较慢&lt;/li&gt;
+&lt;li&gt;pelican&lt;br /&gt;
+python是工作语言，所以本来是最可能选择的就是&lt;a href=&#34;https://github.com/getpelican/pelican&#34;&gt;pelican&lt;/a&gt;，直到我找到hugo&lt;/li&gt;
+&lt;li&gt;hugo&lt;br /&gt;
+golang实现，最大的优点就是快，而且golang可以编译为二进制文件，所以安装起来非常方便&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;迁移过程&#34;&gt;迁移过程&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;模版&lt;br /&gt;
+找了一晚上的模版，最终还是找到了我在SAE上用的模版的原型&lt;a href=&#34;https://github.com/poole/lanyon&#34;&gt;lanyon&lt;/a&gt;，是Jekyll的模版，进而发现了&lt;a href=&#34;https://github.com/tummychow/lanyon-hugo&#34;&gt;lanyon-hugo&lt;/a&gt;，然后就是一些列的修改，最终效果就是现在的样子。还有一些问题比如不支持tags，待有时间再慢慢研究。&lt;/li&gt;
+&lt;li&gt;日志迁移&lt;br /&gt;
+我在blog的日志是保存在MySQL的，表结构比较简单，需要做的就是读取数据库的数据，每篇日志按照hugo的文章的格式生成一个md文件，因为之前的日志正文也是markdown格式的，所以简单的一个脚本就能实现日志的转换。&lt;/li&gt;
+&lt;li&gt;评论&lt;br /&gt;
+之前使用的评论是disqus，由于评论比较少，所以放弃了，转到多说，参照hugo的评论模版写了多说的添加到日志页模版中。&lt;/li&gt;
+&lt;li&gt;github pages&lt;br /&gt;
+在查看了若干hugo的教程后，最终是把blog上线到了github pages上，在github上创建了两个repository，一个&lt;a href=&#34;https://github.com/zhu327/hugo-blog&#34;&gt;hugo-blog&lt;/a&gt;用于托管hugo的网站工程，&lt;a href=&#34;https://github.com/zhu327/zhu327.github.io&#34;&gt;zhu327.github.io&lt;/a&gt;是最终静态文件库。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+
+&lt;p&gt;放弃写了快2年的SAE博客还是会有点不舍，但是用github写博客也是新的体验，发布日志的过程其实也不是想象中的那么复杂，期待我能创造出更多的优质内容。&lt;/p&gt;
+
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;http://nanshu.wang/post/2015-01-31/&#34;&gt;http://nanshu.wang/post/2015-01-31/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</description>
+        </item>
+      
+    
+      
+        <item>
+          <title>Blog更新记录</title>
+          <link>https://xiaolong2009.github.io/2016/03/07/blog%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95/</link>
+          <pubDate>Mon, 07 Mar 2016 11:23:58 CST</pubDate>
+          <author>Xiaolong</author>
+          <guid>https://xiaolong2009.github.io/2016/03/07/blog%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95/</guid>
+          <description>&lt;p&gt;周末花了点时间把许久没有动过的&lt;a href=&#34;https://github.com/zhu327/blog&#34;&gt;Blog&lt;/a&gt;做了一些优化，优化的目标：更快，更省。&lt;/p&gt;
+
+&lt;h3 id=&#34;更快&#34;&gt;更快&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;缓存SQL查询结果&lt;/li&gt;
+&lt;li&gt;优化数据库表结构&lt;/li&gt;
+&lt;li&gt;优化SQL查询语句&lt;/li&gt;
+&lt;li&gt;使用misaka(C写的Markdown解析器)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;更省&#34;&gt;更省&lt;/h3&gt;
+
+&lt;p&gt;用SAE KVDB替换Memcached
+&lt;/p&gt;
+
+&lt;h3 id=&#34;数据库&#34;&gt;数据库&lt;/h3&gt;
+
+&lt;p&gt;在&lt;code&gt;blogs&lt;/code&gt;表设计的时候使用了时间戳+年的2个字段，也许是因为没有经验吧，实际上直接使用&lt;code&gt;DateTime&lt;/code&gt;类型字段是更好的选择，所以删除了&lt;code&gt;year&lt;/code&gt;字段，并且把&lt;code&gt;ceated&lt;/code&gt;字段改为&lt;code&gt;DateTime&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code&gt;view&lt;/code&gt;函数中进行SQL查询尽量遵循越少越好的原则，所以把&lt;code&gt;/tags/:tag&lt;/code&gt;的&lt;code&gt;IN&lt;/code&gt;查询改写为&lt;code&gt;LEFT JOIN&lt;/code&gt;，&lt;code&gt;/tags&lt;/code&gt;的tag进行了排序。在插入数据时，生成批量&lt;code&gt;INSERT&lt;/code&gt;的语句。&lt;/p&gt;
+
+&lt;h3 id=&#34;替换库&#34;&gt;替换库&lt;/h3&gt;
+
+&lt;p&gt;以前用了markdown2这个纯python的库，实际上SAE是自带misaka库的，一个C写的Markdown库的python绑定，毫无疑问misaka的渲染速度不是markdown2可比的所以直接就替换了。&lt;/p&gt;
+
+&lt;p&gt;渲染速度对比可以看这里：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/lepture/mistune/issues/1&#34;&gt;https://github.com/lepture/mistune/issues/1&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;使用SAE KVDB替换了Memcached，Memcached无疑是要比KVDB要快的，虽然我只使用了2M的Memcached的，代价是每个月14云豆，KVDB从测试来看不会比Memcached慢多少，没有容量的限制，综合考虑就替换了。&lt;/p&gt;
+
+&lt;p&gt;SAE 存储测试对比:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;http://blog.sina.com.cn/s/blog_541d0d080100ugq9.html&#34;&gt;http://blog.sina.com.cn/s/blog_541d0d080100ugq9.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;PS: Blog可以说是我迈向python工作的第一个正式的项目，从github上的提交时间来看已经有2年了，虽说功能很简单，却是我人生中的一个转折点，也希望我的技术博客能一直写下去吧。&lt;/p&gt;</description>
+        </item>
+      
+    
+      
+        <item>
+          <title>Memcached 优化 MySQL 查询</title>
+          <link>https://xiaolong2009.github.io/2014/09/24/memcached-%E4%BC%98%E5%8C%96-mysql-%E6%9F%A5%E8%AF%A2/</link>
+          <pubDate>Wed, 24 Sep 2014 22:13:57 CST</pubDate>
+          <author>Xiaolong</author>
+          <guid>https://xiaolong2009.github.io/2014/09/24/memcached-%E4%BC%98%E5%8C%96-mysql-%E6%9F%A5%E8%AF%A2/</guid>
+          <description>&lt;h3 id=&#34;简介&#34;&gt;简介&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://bozpy.sinaapp.com&#34;&gt;跬步&lt;/a&gt;上线后，SAE后台显示云豆的消耗http与MySQL查询各占一半，正好SAE还支持Memcached，本着不用白不用的原则，为&lt;a href=&#34;https://github.com/zhu327/blog/blob/memcached/www/transwarp/db.py&#34;&gt;db.py&lt;/a&gt;加上了Memcached的缓存支持。&lt;/p&gt;
+
+&lt;p&gt;网站在并发不大的情况下，MySQL查询时间还感受不出来，但是如果并发大的化，MySQL会显著的降低响应速度，所以Memcached应运而生。&lt;/p&gt;
+
+&lt;p&gt;Memcached是一个分布式的内存key-value存储系统，由于数据保存在内存中所以查询速度非常快，一般作为其它数据的中间缓存层来使用。&lt;/p&gt;
+
+&lt;p&gt;对于SQL查询先以SQL语句为key查询Memcached，如果查到直接返回，如果没有再去查询MySQL，并把结果缓存到Memcached，下次再次查询时速度显著提升，因为Memcached的数据是保存在内存中的。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;实现&#34;&gt;实现&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;Memcached&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;threading&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;local&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;__init__&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_mc&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;lambda&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;pylibmc&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Client&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;c&#34;&gt;# 创建链接引擎，SAE的不需要输入IP:port，一般的形式为Client([&amp;#39;IP1:port&amp;#39;, &amp;#39;IP2:port&amp;#39;])，输入为一个Memcached的连接池&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;None&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;_connect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;not&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+            &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_mc&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;clean&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+            &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;disconnect_all&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+            &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;None&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;get&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;logging&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;MC get &lt;/span&gt;&lt;span class=&#34;si&#34;&gt;%s&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;%&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_connect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;get&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;set&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;data&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;logging&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;MC set &lt;/span&gt;&lt;span class=&#34;si&#34;&gt;%s&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;%&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_connect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;set&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;data&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c&#34;&gt;# 默认有效时间是30天，time=UTC失效时间，格式为unix标准时间&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;flush&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_connect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;con&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;flush_all&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;_key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt; &lt;span class=&#34;c&#34;&gt;# 生成key:SQL语句的MD5值&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;hashlib&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;md5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;%&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;hexdigest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+
+&lt;span class=&#34;n&#34;&gt;mc&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Memcached&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;以上为pylibmc的简单封装，threading.local类的实例在不同的线程中是不同的，所以不同的线程会建立不同连接，互不干扰。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;select&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;global&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;_db_cxt&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;replace&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;?&amp;#39;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;%s&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;logging&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;select sql: &lt;/span&gt;&lt;span class=&#34;si&#34;&gt;%s&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;, args: &lt;/span&gt;&lt;span class=&#34;si&#34;&gt;%s&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;%&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;None&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;try&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;mc&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;get&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c&#34;&gt;# 先查询Memcached，查到直接返回&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+            &lt;span class=&#34;n&#34;&gt;logging&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#39;MC get data&amp;#39;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+            &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;_db_cxt&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;execute&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;description&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+            &lt;span class=&#34;n&#34;&gt;names&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;description&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;dict&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;zip&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;names&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;fetchall&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()]&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;mc&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;set&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sql&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;args&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c&#34;&gt;# 缓存MySQL查询的结果，下次同样的查询就不必在查询MySQL&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;finally&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;mc&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;clean&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+            &lt;span class=&#34;n&#34;&gt;cursor&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这里只针对SELECT语句，对于INSERT DELETE UPDATE语句，则执行清空所有缓存，以便生成新的缓存。&lt;/p&gt;
+
+&lt;h3 id=&#34;效果&#34;&gt;效果&lt;/h3&gt;
+
+&lt;p&gt;使用缓存后Boz的响应时间因为没有并发没有明显提速的感觉，但是云豆的消耗比以前少了，MySQL的消耗少了很多。&lt;/p&gt;
+
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://sendapatch.se/projects/pylibmc/&#34;&gt;pylibmc docment&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://dev.mysql.com/doc/mysql-ha-scalability/en/ha-memcached-interfaces-python.html&#34;&gt;Using MySQL and memcached with Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cnblogs.com/valleylord/p/3505917.html&#34;&gt;python连接mysql，并在中间用memcached保存sql结果&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+        </item>
+      
+    
+      
+        <item>
+          <title>About Blog</title>
+          <link>https://xiaolong2009.github.io/2014/09/13/about-blog/</link>
+          <pubDate>Sat, 13 Sep 2014 18:20:31 CST</pubDate>
+          <author>Xiaolong</author>
+          <guid>https://xiaolong2009.github.io/2014/09/13/about-blog/</guid>
+          <description>&lt;p&gt;开源:&lt;a href=&#34;https://github.com/zhu327/blog&#34;&gt;https://github.com/zhu327/blog&lt;/a&gt;&lt;br /&gt;
+Boz是一个用Python实现的轻量级Blog程序。&lt;br /&gt;
+这是一个练习作品，开始于&lt;a href=&#34;http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001397616003925a3d157284cd24bc0952d6c4a7c9d8c55000&#34;&gt;廖雪峰的Python教程实战篇&lt;/a&gt;。&lt;br /&gt;
+感谢廖雪峰提供的教程，让我从这个程序中收获良多。&lt;/p&gt;
+
+&lt;p&gt;Blog现有2个分支：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/zhu327/boz/tree/awesome&#34;&gt;awesome&lt;/a&gt;：廖雪峰教程的标准实现&lt;/li&gt;
+&lt;li&gt;master：: 部署在SAE(Sina App Engine)的版本&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;
+master相对与awesome的改变主要是在前端的改变，前端可分为访客面与管理面，两面相对独立。&lt;br /&gt;
+访客面UI完全clone自&lt;a href=&#34;http://heroicyang.com/&#34;&gt;Heroic Yang&amp;rsquo;s Blog&lt;/a&gt;；&lt;br /&gt;
+管理面UI由&lt;a href=&#34;https://github.com/twbs/bootstrap/&#34;&gt;Bootstrap&lt;/a&gt;简单的拼凑出来，界面简陋，实现了Blog后台管理基本功能。&lt;/p&gt;
+
+&lt;p&gt;开发环境：&lt;br /&gt;
+OSX, Python, MySQL, MySQLdb, Jinja2, misaka&lt;/p&gt;
+
+&lt;p&gt;blog设计：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;访客面 MVC&lt;/li&gt;
+&lt;li&gt;管理面 MVVM&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;blog实现了一个简单的Python Web框架，在www/transwarp目录下，包括对MySQLdb的封装，一个简单的ORM实现，以及一个WSGI的web框架实现。&lt;/p&gt;
+
+&lt;p&gt;数据库使用MySQL，模版引擎用到了Jinja2，使用misaka来支持markdown格式。&lt;br /&gt;
+前端管理面用到了Bootstrap jQuery 以及MVVM库Vue.js。&lt;/p&gt;
+
+&lt;p&gt;部署：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;MySQL中导入schema.sql&lt;/li&gt;
+&lt;li&gt;修改config_override.py配置，可参考config_default.py&lt;/li&gt;
+&lt;li&gt;修改template模版，包括blog名称，about页面信息&lt;/li&gt;
+&lt;li&gt;python wsgiapp.py即可运行，SAE分支还需要修改config.yaml相关信息&lt;/li&gt;
+&lt;li&gt;后台/manage/默认用户名:admin@example.com 密码:123456，首次部署后需要到/manage/user修改密码&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Boz是在业余学习的练习作品，前后学习编码差不多用了1个多月，学习了很多东西，准备输出学习笔记记录在&lt;a href=&#34;http://bozpy.sinaapp.com&#34;&gt;http://bozpy.sinaapp.com&lt;/a&gt;上，各位看官如有兴趣，请订阅。&lt;/p&gt;</description>
+        </item>
+      
+    
+
+  </channel>
+</rss>

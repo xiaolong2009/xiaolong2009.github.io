@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+	<meta name="generator" content="Hugo 0.17" />
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      V2GO &middot; Way to Coding
+    
+  </title>
+
+  
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/poole.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/syntax.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.proxy.ustclug.org/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://xiaolong2009.github.io/assets/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="https://xiaolong2009.github.io/assets/favicon.ico">
+
+  
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="https://xiaolong2009.github.io/feed.xml">
+</head>
+
+
+  <body class="theme-base-0d">
+
+    
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>My notes and thoughts.</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item  active " href="https://xiaolong2009.github.io/">Home</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/post">Posts</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/tags">Tags</a>
+
+    
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+        <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/about/">About</a>
+      
+    
+
+    <a class="sidebar-nav-item" href="https://github.com/xiaolong2009" target="_blank">GitHub</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="https://xiaolong2009.github.io/" title="Home">V2GO</a>
+            <small>Way to Coding</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+
+
+
+
+
+<div class="posts">
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/07/20/ajax%E4%B8%AD%E7%9A%84jsonp%E7%90%86%E8%A7%A3/">Ajax中的jsonp理解</a></h1>
+        <span class="post-date">Jul 20 2015</span>
+        <p>公司自有服务都是后台api来实现,即使是website也是通过调用api获取来渲染网页,正常的Ajax中请求都是调用浏览器的XMLHttpRequest接口来异步请求数据,但是无论是Chrome,还是IE都有一个限制,就是不能跨域通过XMLHttpRequest来发请求.</p>
+
+<p>话说你有过墙梯我有张良计,聪明的开发者总是会有办法来绕过浏览器跨域的限制来请求数据,在HTML中具有<code>src</code>属性的标签例如<code>script</code>,<code>img</code>都是可用跨域来请求<code>src</code>指向的资源数据的,既然<code>script</code>标签可以跨域,那就利用这个来实现跨域.但是<code>script</code>标签返回的数据不能直接是json格式,需要是标准的javascript函数调用,所以需要返回的数据中包括一个在已有js函数的本地调用方式,传入我们需要的数据,这里的数据才是json格式的.</p>
+
+<p>发送请求:</p>
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;http://server2.example.com/RetrieveUser?UserId=1823&amp;jsonp=parseResponse&quot;</span><span class="nt">&gt;</span> <span class="nt">&lt;/script&gt;</span>
+</code></pre></div>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/07/02/openshift%E5%B9%B3%E5%8F%B0diy%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AEtornado/">openshift平台DIY环境配置Tornado</a></h1>
+        <span class="post-date">Jul 2 2015</span>
+        <blockquote>
+<p>openshift官方和社区提供不少配置好的环境，也包括python2.7和python3.3下的tornado套件。<br />
+一方面希望拥有更高的使用自由，另一方面希望熟悉一下openshift的DIY环境，本着这个目的，自行创建一个DIY环境，在上面安装运行python 2.7.10和Tornado 3.2。</p>
+</blockquote>
+
+<p>【Step1、创建DIY环境】</p>
+
+<p>【Step2、安装python 2.7.10】</p>
+
+<p>通过<code>python -V</code>看到系统已预装<code>python 2.6.6</code>，直接在<code>$OPENSHIFT_DATA_DIR</code>下安装2.7.10可以正常使用，但需要注意其调用路径为<code>$OPENSHIFT_DATA_DIR/bin/python</code>。</p>
+
+<p></p>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/06/04/%E9%82%AE%E4%BB%B6%E5%AF%86%E7%A0%81%E6%89%BE%E5%9B%9E%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0/">邮件密码找回功能实现</a></h1>
+        <span class="post-date">Jun 4 2015</span>
+        <h3 id="思路">思路</h3>
+
+<p>公司做项目,有用到注册,登录,密码找回等功能,以前自己写的论坛也实现了邮件密码找回,不过比较简单,直接生成随机密码,把新密码发送到用户邮箱.比较不安全,要实现一般网站的用链接找回的功能.</p>
+
+<p>对链接的要求有如下:</p>
+
+<ol>
+<li>每次生成的链接都必须不一样;</li>
+<li>链接要有过期时间,过期以后无效;</li>
+<li>后台在链接被请求时,必须验证链接是否有效.</li>
+</ol>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/03/16/django%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95oauth2.0%E8%AE%A4%E8%AF%81%E6%9C%8D%E5%8A%A1/">Django实现简单OAuth2.0认证服务</a></h1>
+        <span class="post-date">Mar 16 2015</span>
+        <p>开始写<a href="https://github.com/zhu327/forum">Django forum</a>的RESTful api，首先解决用户认证的问题，使用OAuth2.0协议实现。</p>
+
+<h3 id="参考">参考</h3>
+
+<p><a href="http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html">理解OAuth 2.0</a></p>
+
+<h3 id="授权">授权</h3>
+
+<p>OAuth2.0协议定义了4种授权模式，为了学习OAuth2.0授权协议，这里只实现简化模式。以下为简化模式授权过程。</p>
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2015/03/14/restful-api-%E7%90%86%E8%A7%A3/">RESTful API 理解</a></h1>
+        <span class="post-date">Mar 14 2015</span>
+        <h3 id="参考">参考</h3>
+
+<p><a href="http://www.ruanyifeng.com/blog/2011/09/restful.html">理解RESTful架构</a><br />
+<a href="http://www.ruanyifeng.com/blog/2014/05/restful_api.html">RESTful API 设计指南</a><br />
+<a href="http://get.jobdeer.com/343.get">来自HeroKu的HTTP API 设计指南(中文版)</a></p>
+
+<h3 id="概念">概念</h3>
+
+<p>REST == Representational State Transfer，意思是表现层状态转化，我们来分解这个概念。<br />
+从字面以上理解这是一个操作的过程，实际上它省略了主语资源(Resources)，合起来就是资源的表现层状态转化。
+</p>
+    </div>
+  
+</div>
+
+<div class="pagination">
+  
+  <a class="pagination-item older" href="https://xiaolong2009.github.io/page/7/">Older</a>
+  
+
+  
+  <a class="pagination-item newer" href="https://xiaolong2009.github.io/page/5/">Newer</a>
+  
+</div>
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  </body>
+</html>
+
