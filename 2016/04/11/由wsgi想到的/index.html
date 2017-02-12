@@ -130,13 +130,14 @@
 <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
 <span class="n">start_response</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
 <span class="k">return</span> <span class="p">[</span><span class="s">&#39;Hello world from a simple WSGI application!</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
-</code></pre></div>
+</code></pre></div></li>
+</ol>
 
-<h3 id="服务器程序">服务器程序</h3></li>
+<h3 id="服务器程序">服务器程序</h3>
 
-<li><p>把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response</p></li>
-
-<li><p>调用应用程序</p></li>
+<ol>
+<li>把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response</li>
+<li>调用应用程序</li>
 
 <li><p>迭代访问应用程序的返回结果，并将其传回客户端<br />
 一个server看起来应该是这样的：</p>
@@ -169,163 +170,165 @@
 
 <p>看到这里相信大多数同学还是一脸懵B，下面我们来详细说一下这两个部分，按照请求到达后端的顺序，我们先从服务器程序说起</p>
 
-<h3 id="服务器程序-1">服务器程序</h3>
-
-<p>先上代码，将下面的代码存为webserver.py
-```python
-import socket
-import StringIO
-import sys</p></li>
+<h3 id="服务器程序-1">服务器程序</h3></li>
 </ol>
 
-<p>class WSGIServer(object):</p>
+<p>先上代码，将下面的代码存为webserver.py</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">StringIO</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 
-<pre><code>address_family = socket.AF_INET
-socket_type = socket.SOCK_STREAM
-request_queue_size = 1
 
-def __init__(self, server_address):
-    # Create a listening socket
-    self.listen_socket = listen_socket = socket.socket(
-        self.address_family,
-        self.socket_type
-    )
-    # Allow to reuse the same address
-    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # Bind
-    listen_socket.bind(server_address)
-    # Activate
-    listen_socket.listen(self.request_queue_size)
-    # Get server host name and port
-    host, port = self.listen_socket.getsockname()[:2]
-    self.server_name = socket.getfqdn(host)
-    self.server_port = port
-    # Return headers set by Web framework/Web application
-    self.headers_set = []
+<span class="k">class</span> <span class="nc">WSGIServer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-def set_app(self, application):
-    self.application = application
+    <span class="n">address_family</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span>
+    <span class="n">socket_type</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span>
+    <span class="n">request_queue_size</span> <span class="o">=</span> <span class="mi">1</span>
 
-def serve_forever(self):
-    listen_socket = self.listen_socket
-    while True:
-        # New client connection
-        self.client_connection, client_address = listen_socket.accept()
-        # Handle one request and close the client connection. Then
-        # loop over to wait for another client connection
-        self.handle_one_request()
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_address</span><span class="p">):</span>
+        <span class="c"># Create a listening socket</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listen_socket</span> <span class="o">=</span> <span class="n">listen_socket</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address_family</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket_type</span>
+        <span class="p">)</span>
+        <span class="c"># Allow to reuse the same address</span>
+        <span class="n">listen_socket</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SO_REUSEADDR</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c"># Bind</span>
+        <span class="n">listen_socket</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">server_address</span><span class="p">)</span>
+        <span class="c"># Activate</span>
+        <span class="n">listen_socket</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request_queue_size</span><span class="p">)</span>
+        <span class="c"># Get server host name and port</span>
+        <span class="n">host</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listen_socket</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server_name</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server_port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="c"># Return headers set by Web framework/Web application</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers_set</span> <span class="o">=</span> <span class="p">[]</span>
 
-def handle_one_request(self):
-    self.request_data = request_data = self.client_connection.recv(1024)
-    # Print formatted request data a la 'curl -v'
-    print(''.join(
-        '&lt; {line}\n'.format(line=line)
-        for line in request_data.splitlines()
-    ))
+    <span class="k">def</span> <span class="nf">set_app</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">application</span> <span class="o">=</span> <span class="n">application</span>
 
-    self.parse_request(request_data)
+    <span class="k">def</span> <span class="nf">serve_forever</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">listen_socket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listen_socket</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="c"># New client connection</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client_connection</span><span class="p">,</span> <span class="n">client_address</span> <span class="o">=</span> <span class="n">listen_socket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="c"># Handle one request and close the client connection. Then</span>
+            <span class="c"># loop over to wait for another client connection</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_one_request</span><span class="p">()</span>
 
-    # Construct environment dictionary using request data
-    env = self.get_environ()
+    <span class="k">def</span> <span class="nf">handle_one_request</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_data</span> <span class="o">=</span> <span class="n">request_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+        <span class="c"># Print formatted request data a la &#39;curl -v&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="s">&#39;&lt; {line}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">request_data</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="p">))</span>
 
-    # It's time to call our application callable and get
-    # back a result that will become HTTP response body
-    result = self.application(env, self.start_response)
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse_request</span><span class="p">(</span><span class="n">request_data</span><span class="p">)</span>
 
-    # Construct a response and send it back to the client
-    self.finish_response(result)
+        <span class="c"># Construct environment dictionary using request data</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_environ</span><span class="p">()</span>
 
-def parse_request(self, text):
-    request_line = text.splitlines()[0]
-    request_line = request_line.rstrip('\r\n')
-    # Break down the request line into components
-    (self.request_method,  # GET
-     self.path,            # /hello
-     self.request_version  # HTTP/1.1
-     ) = request_line.split()
+        <span class="c"># It&#39;s time to call our application callable and get</span>
+        <span class="c"># back a result that will become HTTP response body</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_response</span><span class="p">)</span>
 
-def get_environ(self):
-    env = {}
-    # The following code snippet does not follow PEP8 conventions
-    # but it's formatted the way it is for demonstration purposes
-    # to emphasize the required variables and their values
-    #
-    # Required WSGI variables
-    env['wsgi.version']      = (1, 0)
-    env['wsgi.url_scheme']   = 'http'
-    env['wsgi.input']        = StringIO.StringIO(self.request_data)
-    env['wsgi.errors']       = sys.stderr
-    env['wsgi.multithread']  = False
-    env['wsgi.multiprocess'] = False
-    env['wsgi.run_once']     = False
-    # Required CGI variables
-    env['REQUEST_METHOD']    = self.request_method    # GET
-    env['PATH_INFO']         = self.path              # /hello
-    env['SERVER_NAME']       = self.server_name       # localhost
-    env['SERVER_PORT']       = str(self.server_port)  # 8888
-    return env
+        <span class="c"># Construct a response and send it back to the client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish_response</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
-def start_response(self, status, response_headers, exc_info=None):
-    # Add necessary server headers
-    server_headers = [
-        ('Date', 'Tue, 31 Mar 2015 12:54:48 GMT'),
-        ('Server', 'WSGIServer 0.2'),
-    ]
-    self.headers_set = [status, response_headers + server_headers]
-    # To adhere to WSGI specification the start_response must return
-    # a 'write' callable. We simplicity's sake we'll ignore that detail
-    # for now.
-    # return self.finish_response
+    <span class="k">def</span> <span class="nf">parse_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="n">request_line</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">request_line</span> <span class="o">=</span> <span class="n">request_line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="c"># Break down the request line into components</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request_method</span><span class="p">,</span>  <span class="c"># GET</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>            <span class="c"># /hello</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">request_version</span>  <span class="c"># HTTP/1.1</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">request_line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
-def finish_response(self, result):
-    try:
-        status, response_headers = self.headers_set
-        response = 'HTTP/1.1 {status}\r\n'.format(status=status)
-        for header in response_headers:
-            response += '{0}: {1}\r\n'.format(*header)
-        response += '\r\n'
-        for data in result:
-            response += data
-        # Print formatted response data a la 'curl -v'
-        print(''.join(
-            '&gt; {line}\n'.format(line=line)
-            for line in response.splitlines()
-        ))
-        self.client_connection.sendall(response)
-    finally:
-        self.client_connection.close()
-</code></pre>
+    <span class="k">def</span> <span class="nf">get_environ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># The following code snippet does not follow PEP8 conventions</span>
+        <span class="c"># but it&#39;s formatted the way it is for demonstration purposes</span>
+        <span class="c"># to emphasize the required variables and their values</span>
+        <span class="c">#</span>
+        <span class="c"># Required WSGI variables</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.version&#39;</span><span class="p">]</span>      <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.url_scheme&#39;</span><span class="p">]</span>   <span class="o">=</span> <span class="s">&#39;http&#39;</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.input&#39;</span><span class="p">]</span>        <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request_data</span><span class="p">)</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.errors&#39;</span><span class="p">]</span>       <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.multithread&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.multiprocess&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;wsgi.run_once&#39;</span><span class="p">]</span>     <span class="o">=</span> <span class="bp">False</span>
+        <span class="c"># Required CGI variables</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;REQUEST_METHOD&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_method</span>    <span class="c"># GET</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span>         <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>              <span class="c"># /hello</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;SERVER_NAME&#39;</span><span class="p">]</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_name</span>       <span class="c"># localhost</span>
+        <span class="n">env</span><span class="p">[</span><span class="s">&#39;SERVER_PORT&#39;</span><span class="p">]</span>       <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>  <span class="c"># 8888</span>
+        <span class="k">return</span> <span class="n">env</span>
 
-<p>SERVER_ADDRESS = (HOST, PORT) = &ldquo;, 8888</p>
+    <span class="k">def</span> <span class="nf">start_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># Add necessary server headers</span>
+        <span class="n">server_headers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;Date&#39;</span><span class="p">,</span> <span class="s">&#39;Tue, 31 Mar 2015 12:54:48 GMT&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;Server&#39;</span><span class="p">,</span> <span class="s">&#39;WSGIServer 0.2&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers_set</span> <span class="o">=</span> <span class="p">[</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span> <span class="o">+</span> <span class="n">server_headers</span><span class="p">]</span>
+        <span class="c"># To adhere to WSGI specification the start_response must return</span>
+        <span class="c"># a &#39;write&#39; callable. We simplicity&#39;s sake we&#39;ll ignore that detail</span>
+        <span class="c"># for now.</span>
+        <span class="c"># return self.finish_response</span>
 
-<p>def make_server(server_address, application):
-    server = WSGIServer(server_address)
-    server.set_app(application)
-    return server</p>
+    <span class="k">def</span> <span class="nf">finish_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers_set</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="s">&#39;HTTP/1.1 {status}</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">header</span> <span class="ow">in</span> <span class="n">response_headers</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">+=</span> <span class="s">&#39;{0}: {1}</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">header</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span>
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">+=</span> <span class="n">data</span>
+            <span class="c"># Print formatted response data a la &#39;curl -v&#39;</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="s">&#39;&gt; {line}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client_connection</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client_connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&lsquo;:
-    if len(sys.argv) &lt; 2:
-        sys.exit(&lsquo;Provide a WSGI application object as module:callable&rsquo;)
-    app_path = sys.argv[1]
-    module, application = app_path.split(&rsquo;:&lsquo;)
-    module = <strong>import</strong>(module)
-    application = getattr(module, application)
-    httpd = make_server(SERVER_ADDRESS, application)
-    print(&lsquo;WSGIServer: Serving HTTP on port {port} &hellip;\n&rsquo;.format(port=PORT))
-    httpd.serve_forever()</p>
 
-<pre><code>这是一段比较完整的web server的代码，可以和django、flask等框架配置使用，下面用flask先来演示一下怎么使用，再具体分析代码的逻辑  
-1. 先创建一个虚拟环境
-```python
-$ [sudo] pip install virtualenv
-$ mkdir ~/envs
-$ virtualenv ~/envs/test/
-$ cd ~/envs/test/
-$ ls
-bin  include  lib
-$ source bin/activate
-(test) $ pip install flask
-</code></pre>
+<span class="n">SERVER_ADDRESS</span> <span class="o">=</span> <span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">)</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">8888</span>
+
+
+<span class="k">def</span> <span class="nf">make_server</span><span class="p">(</span><span class="n">server_address</span><span class="p">,</span> <span class="n">application</span><span class="p">):</span>
+    <span class="n">server</span> <span class="o">=</span> <span class="n">WSGIServer</span><span class="p">(</span><span class="n">server_address</span><span class="p">)</span>
+    <span class="n">server</span><span class="o">.</span><span class="n">set_app</span><span class="p">(</span><span class="n">application</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">server</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s">&#39;Provide a WSGI application object as module:callable&#39;</span><span class="p">)</span>
+    <span class="n">app_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">module</span><span class="p">,</span> <span class="n">application</span> <span class="o">=</span> <span class="n">app_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">application</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">application</span><span class="p">)</span>
+    <span class="n">httpd</span> <span class="o">=</span> <span class="n">make_server</span><span class="p">(</span><span class="n">SERVER_ADDRESS</span><span class="p">,</span> <span class="n">application</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;WSGIServer: Serving HTTP on port {port} ...</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">PORT</span><span class="p">))</span>
+    <span class="n">httpd</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+</code></pre></div>
+
+<p>这是一段比较完整的web server的代码，可以和django、flask等框架配置使用，下面用flask先来演示一下怎么使用，再具体分析代码的逻辑<br />
+1. 先创建一个虚拟环境</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="err">$</span> <span class="p">[</span><span class="n">sudo</span><span class="p">]</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">virtualenv</span>
+<span class="err">$</span> <span class="n">mkdir</span> <span class="o">~/</span><span class="n">envs</span>
+<span class="err">$</span> <span class="n">virtualenv</span> <span class="o">~/</span><span class="n">envs</span><span class="o">/</span><span class="n">test</span><span class="o">/</span>
+<span class="err">$</span> <span class="n">cd</span> <span class="o">~/</span><span class="n">envs</span><span class="o">/</span><span class="n">test</span><span class="o">/</span>
+<span class="err">$</span> <span class="n">ls</span>
+<span class="nb">bin</span>  <span class="n">include</span>  <span class="n">lib</span>
+<span class="err">$</span> <span class="n">source</span> <span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="p">(</span><span class="n">test</span><span class="p">)</span> <span class="err">$</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">flask</span>
+</code></pre></div>
 
 <ol>
 <li>将下面的代码存为flaskapp.py
