@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title> </title>
+    <title>V2GO </title>
     <link>https://xiaolong2009.github.io/post/feed/index.xml</link>
     <language>en-us</language>
     <author>Xiaolong</author>
-    <rights>(C) 2016</rights>
+    <rights>(C) 1</rights>
     <updated>2016-06-16 17:51:21 &#43;0800 CST</updated>
 
     
@@ -276,6 +276,511 @@
 &lt;blockquote&gt;
 &lt;p&gt;&lt;a href=&#34;https://github.com/zhu327/model_trace&#34;&gt;https://github.com/zhu327/model_trace&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;</description>
+        </item>
+      
+    
+      
+        <item>
+          <title></title>
+          <link>https://xiaolong2009.github.io/1/01/01/</link>
+          <pubDate>Mon, 01 Jan 0001 00:00:00 UTC</pubDate>
+          <author>Xiaolong</author>
+          <guid>https://xiaolong2009.github.io/1/01/01/</guid>
+          <description>
+
+&lt;hr /&gt;
+
+&lt;p&gt;date: 2016-04-11T11:46:53+08:00
+title: 由WSGI想到的&lt;/p&gt;
+
+&lt;h2 id=&#34;tags-python&#34;&gt;tags: [&amp;ldquo;python&amp;rdquo;]&lt;/h2&gt;
+
+&lt;h1 id=&#34;由wsgi想到的&#34;&gt;由WSGI想到的&lt;/h1&gt;
+
+&lt;p&gt;对于一个python的web项目, 在一次http请求的背后究竟发生了什么呢?今天通过这篇博客跟大家说道说道&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;背景&#34;&gt;背景&lt;/h2&gt;
+
+&lt;p&gt;python web开发中，服务端程序程序可以分为两个部分，一是服务器程序，二是应用程序。前者负责把客户端请求接受、整理，后者负责具体逻辑处理。为了方便应用程序的开发，通常把常用的功能封装起来成为各种web开发框架，如django、flask等，这些应用程序都要跟服务器程序配合才能为用户服务。但是问题来了，服务器程序和应用程序之间怎么搭配呢？这时候就需要一个标准，只要server和web app都支持这个标准，那他们就可以配合使用，一旦标准确定，双方各自实现。这样，服务器可以支持更多支持标准的框架，框架也可以使用更多支持标准的服务器。&lt;strong&gt;在python web开发中,这个标准就是The Web Server Gateway Interface也就是WSGI.&lt;/strong&gt;
+&lt;img src=&#34;https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_wsgi_interop.png&#34; alt=&#34;image&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;wsgi-简介&#34;&gt;WSGI 简介&lt;/h2&gt;
+
+&lt;p&gt;WSGI主要是对应用程序与服务器端的一些规定，所以，它的主要内容就分为两个部分。&lt;/p&gt;
+
+&lt;h3 id=&#34;应用程序-app&#34;&gt;应用程序(app)&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;app必须是一个callable对象，可以是函数，类，实现了&lt;strong&gt;call&lt;/strong&gt;方法的实例对象&lt;/li&gt;
+&lt;li&gt;app接受2个参数environ和start_response，environ是一个包含了CGI环境变量与WSGI相关变量的字典， start_response是一个函数对象，用于处理response header，接受2个参数status是response状态码，headers是response header的列表，列表项是元组&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;app返回一个可迭代对象，可以是list，实现了&lt;strong&gt;iter&lt;/strong&gt;方法的类，其它的可迭代对象。用于response body&lt;br /&gt;
+一个wsgi app看起来应该是这样的：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def app(environ, start_response):
+&amp;quot;&amp;quot;&amp;quot;A barebones WSGI application.
+
+This is a starting point for your own Web framework :)
+&amp;quot;&amp;quot;&amp;quot;
+status = &#39;200 OK&#39;
+response_headers = [(&#39;Content-Type&#39;, &#39;text/plain&#39;)]
+start_response(status, response_headers)
+return [&#39;Hello world from a simple WSGI application!\n&#39;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;服务器程序&#34;&gt;服务器程序&lt;/h3&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;调用应用程序&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;迭代访问应用程序的返回结果，并将其传回客户端&lt;br /&gt;
+一个server看起来应该是这样的：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def run(application):
+environ = {}
+
+# set environ
+def write(data):
+    pass
+
+def start_response(status, response_headers, exc_info=None):
+    return write
+
+try:
+    result = application(environ, start_response)
+finally:
+    if hasattr(result, &#39;close&#39;):
+        result.close()
+
+if hasattr(result, &#39;__len__&#39;):
+    # result must be accumulated
+    pass
+
+
+for data in result:
+    write(data)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;wsgi详解&#34;&gt;WSGI详解&lt;/h2&gt;
+
+&lt;p&gt;看到这里相信大多数同学还是一脸懵B，下面我们来详细说一下这两个部分，按照请求到达后端的顺序，我们先从服务器程序说起&lt;/p&gt;
+
+&lt;h3 id=&#34;服务器程序-1&#34;&gt;服务器程序&lt;/h3&gt;
+
+&lt;p&gt;先上代码，将下面的代码存为webserver.py
+```
+import socket
+import StringIO
+import sys&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;class WSGIServer(object):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;address_family = socket.AF_INET
+socket_type = socket.SOCK_STREAM
+request_queue_size = 1
+
+def __init__(self, server_address):
+    # Create a listening socket
+    self.listen_socket = listen_socket = socket.socket(
+        self.address_family,
+        self.socket_type
+    )
+    # Allow to reuse the same address
+    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # Bind
+    listen_socket.bind(server_address)
+    # Activate
+    listen_socket.listen(self.request_queue_size)
+    # Get server host name and port
+    host, port = self.listen_socket.getsockname()[:2]
+    self.server_name = socket.getfqdn(host)
+    self.server_port = port
+    # Return headers set by Web framework/Web application
+    self.headers_set = []
+
+def set_app(self, application):
+    self.application = application
+
+def serve_forever(self):
+    listen_socket = self.listen_socket
+    while True:
+        # New client connection
+        self.client_connection, client_address = listen_socket.accept()
+        # Handle one request and close the client connection. Then
+        # loop over to wait for another client connection
+        self.handle_one_request()
+
+def handle_one_request(self):
+    self.request_data = request_data = self.client_connection.recv(1024)
+    # Print formatted request data a la &#39;curl -v&#39;
+    print(&#39;&#39;.join(
+        &#39;&amp;lt; {line}\n&#39;.format(line=line)
+        for line in request_data.splitlines()
+    ))
+
+    self.parse_request(request_data)
+
+    # Construct environment dictionary using request data
+    env = self.get_environ()
+
+    # It&#39;s time to call our application callable and get
+    # back a result that will become HTTP response body
+    result = self.application(env, self.start_response)
+
+    # Construct a response and send it back to the client
+    self.finish_response(result)
+
+def parse_request(self, text):
+    request_line = text.splitlines()[0]
+    request_line = request_line.rstrip(&#39;\r\n&#39;)
+    # Break down the request line into components
+    (self.request_method,  # GET
+     self.path,            # /hello
+     self.request_version  # HTTP/1.1
+     ) = request_line.split()
+
+def get_environ(self):
+    env = {}
+    # The following code snippet does not follow PEP8 conventions
+    # but it&#39;s formatted the way it is for demonstration purposes
+    # to emphasize the required variables and their values
+    #
+    # Required WSGI variables
+    env[&#39;wsgi.version&#39;]      = (1, 0)
+    env[&#39;wsgi.url_scheme&#39;]   = &#39;http&#39;
+    env[&#39;wsgi.input&#39;]        = StringIO.StringIO(self.request_data)
+    env[&#39;wsgi.errors&#39;]       = sys.stderr
+    env[&#39;wsgi.multithread&#39;]  = False
+    env[&#39;wsgi.multiprocess&#39;] = False
+    env[&#39;wsgi.run_once&#39;]     = False
+    # Required CGI variables
+    env[&#39;REQUEST_METHOD&#39;]    = self.request_method    # GET
+    env[&#39;PATH_INFO&#39;]         = self.path              # /hello
+    env[&#39;SERVER_NAME&#39;]       = self.server_name       # localhost
+    env[&#39;SERVER_PORT&#39;]       = str(self.server_port)  # 8888
+    return env
+
+def start_response(self, status, response_headers, exc_info=None):
+    # Add necessary server headers
+    server_headers = [
+        (&#39;Date&#39;, &#39;Tue, 31 Mar 2015 12:54:48 GMT&#39;),
+        (&#39;Server&#39;, &#39;WSGIServer 0.2&#39;),
+    ]
+    self.headers_set = [status, response_headers + server_headers]
+    # To adhere to WSGI specification the start_response must return
+    # a &#39;write&#39; callable. We simplicity&#39;s sake we&#39;ll ignore that detail
+    # for now.
+    # return self.finish_response
+
+def finish_response(self, result):
+    try:
+        status, response_headers = self.headers_set
+        response = &#39;HTTP/1.1 {status}\r\n&#39;.format(status=status)
+        for header in response_headers:
+            response += &#39;{0}: {1}\r\n&#39;.format(*header)
+        response += &#39;\r\n&#39;
+        for data in result:
+            response += data
+        # Print formatted response data a la &#39;curl -v&#39;
+        print(&#39;&#39;.join(
+            &#39;&amp;gt; {line}\n&#39;.format(line=line)
+            for line in response.splitlines()
+        ))
+        self.client_connection.sendall(response)
+    finally:
+        self.client_connection.close()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;SERVER_ADDRESS = (HOST, PORT) = &amp;ldquo;, 8888&lt;/p&gt;
+
+&lt;p&gt;def make_server(server_address, application):
+    server = WSGIServer(server_address)
+    server.set_app(application)
+    return server&lt;/p&gt;
+
+&lt;p&gt;if &lt;strong&gt;name&lt;/strong&gt; == &amp;lsquo;&lt;strong&gt;main&lt;/strong&gt;&amp;lsquo;:
+    if len(sys.argv) &amp;lt; 2:
+        sys.exit(&amp;lsquo;Provide a WSGI application object as module:callable&amp;rsquo;)
+    app_path = sys.argv[1]
+    module, application = app_path.split(&amp;rsquo;:&amp;lsquo;)
+    module = &lt;strong&gt;import&lt;/strong&gt;(module)
+    application = getattr(module, application)
+    httpd = make_server(SERVER_ADDRESS, application)
+    print(&amp;lsquo;WSGIServer: Serving HTTP on port {port} &amp;hellip;\n&amp;rsquo;.format(port=PORT))
+    httpd.serve_forever()&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;这是一段比较完整的web server的代码，可以和django、flask等框架配置使用，下面用flask先来演示一下怎么使用，再具体分析代码的逻辑  
+1. 先创建一个虚拟环境
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;$ [sudo] pip install virtualenv
+$ mkdir ~/envs
+$ virtualenv ~/envs/test/
+$ cd ~/envs/test/
+$ ls
+bin  include  lib
+$ source bin/activate
+(test) $ pip install flask&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;2. 将下面的代码存为flaskapp.py
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;from flask import Flask
+from flask import Response
+flask_app = Flask(&amp;lsquo;flaskapp&amp;rsquo;)&lt;/p&gt;
+
+&lt;p&gt;@flask_app.route(&amp;lsquo;/hello&amp;rsquo;)
+def hello_world():
+    return Response(
+        &amp;lsquo;Hello world from Flask!\n&amp;rsquo;,
+        mimetype=&amp;lsquo;text/plain&amp;rsquo;
+    )&lt;/p&gt;
+
+&lt;p&gt;app = flask_app.wsgi_app&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;3. 用webserver启动flaskapp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;(test) $ python webserver.py flaskapp:app
+WSGIServer: Serving HTTP on port 8888 &amp;hellip;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;4. 测试
+在输入 http://localhost:8888/hello 然后访问
+
+![image](https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_browser_flask.png)
+
+显然 我们的代码生效了
+
+现在我们回过头来看一下webserver.py是怎么实现的    
+1. 我们从flask里导入了application，application是由web 框架提供的。
+2. 创建一个socket链接，然后通过socket的recv方法读取request
+3. 对请求进行解析，解析的结果会有request_method、path、request_version等信息
+4. 用解析出来的信息创建一个environ，environ是一个字典，里面包含了CGI环境变量和wsgi需要的一些变量
+5. 调用application，并将environ和start_response传进去，然后得到一个结果
+6. 解析得到的结果，并拼接出response的header和body，其中header是由start_response产生的，body是遍历application得到的。
+7. 最后通过socket的sendall方法返回给客户端。
+![image](https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_server_summary.png)
+好了一次完整的请求就结束了，这里我们可以看到服务端程序主要是对请求进行解析，并拼凑出environ传递给应用程序，具体的处理流程其实应用程序那边，也就是上面的第4和第5步，那应用程序拿到environ后具体是怎么处理的呢，下面我们来详细说一下应用程序
+### 应用器程序
+先回顾一下一个最简单的应用程序的代码
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;def app(environ, start_response):
+    &amp;ldquo;&amp;rdquo;&amp;ldquo;A barebones WSGI application.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;This is a starting point for your own Web framework :)
+&amp;quot;&amp;quot;&amp;quot;
+status = &#39;200 OK&#39;
+response_headers = [(&#39;Content-Type&#39;, &#39;text/plain&#39;)]
+start_response(status, response_headers)
+return [&#39;Hello world from a simple WSGI application!\n&#39;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;大家肯定会说我写的django或者flask的代码不是这样的，这里仅仅是一个演示，没有解析environ也没有具体的处理逻辑，这里想说明的是，应用程序和服务器程序是怎样配合的。start_response是一个函数对象，用于处理response header，app返回的是一个可迭代对象，web server会遍历这个可迭代对象来产生response body。
+但是在实际的web框架中可不仅仅是这么简单，一般的web框架都会实现url路由，cookie处理等等中间件。下面我们看一下一个web框架是怎么写的。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;#!/usr/bin/env python&lt;/p&gt;
+
+&lt;h1 id=&#34;coding-utf-8&#34;&gt;-&lt;em&gt;- coding: utf-8 -&lt;/em&gt;-&lt;/h1&gt;
+
+&lt;p&gt;&amp;rdquo;&amp;ldquo;&amp;ldquo;application.py&amp;rdquo;&amp;ldquo;&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;class my_app:
+    def &lt;strong&gt;init&lt;/strong&gt;(self, environ, start_response):
+        self.environ = environ
+        self.start = start_response&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def __iter__(self):
+    path = self.environ[&#39;PATH_INFO&#39;]
+    if path == &amp;quot;/&amp;quot;:
+        return self.GET_index()
+    elif path == &amp;quot;/hello&amp;quot;:
+        return self.GET_hello()
+    else:
+        return self.notfound()
+
+def GET_index(self):
+    status = &#39;200 OK&#39;
+    response_headers = [(&#39;Content-type&#39;, &#39;text/plain&#39;)]
+    self.start(status, response_headers)
+    yield &amp;quot;Welcome!\n&amp;quot;
+
+def GET_hello(self):
+    status = &#39;200 OK&#39;
+    response_headers = [(&#39;Content-type&#39;, &#39;text/plain&#39;)]
+    self.start(status, response_headers)
+    yield &amp;quot;Hello world!\n&amp;quot;
+
+def notfound(self):
+    status = &#39;404 Not Found&#39;
+    response_headers = [(&#39;Content-type&#39;, &#39;text/plain&#39;)]
+    self.start(status, response_headers)
+    yield &amp;quot;Not Found\n&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;从environ里读取了url的path，不同的url用不同的函数进行处理，实现了最简单的url路由的功能，但是url还是硬编码，下面用正则来匹配url
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;#!/usr/bin/env python&lt;/p&gt;
+
+&lt;h1 id=&#34;coding-utf-8-1&#34;&gt;-&lt;em&gt;- coding: utf-8 -&lt;/em&gt;-&lt;/h1&gt;
+
+&lt;p&gt;import re&lt;/p&gt;
+
+&lt;p&gt;class my_app:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;urls = (
+    (&amp;quot;/&amp;quot;, &amp;quot;index&amp;quot;),
+    (&amp;quot;/hello/(.*)&amp;quot;, &amp;quot;hello&amp;quot;),
+)
+
+def __init__(self, environ, start_response):
+    self.environ = environ
+    self.start = start_response
+
+def __iter__(self):
+    path = self.environ[&#39;PATH_INFO&#39;]
+    method = self.environ[&#39;REQUEST_METHOD&#39;]
+
+    for pattern, name in self.urls:
+        m = re.match(&#39;^&#39; + pattern + &#39;$&#39;, path)
+        if m:
+            # pass the matched groups as arguments to the function
+            args = m.groups()
+            funcname = method.upper() + &#39;_&#39; + name
+            if hasattr(self, funcname):
+                func = getattr(self, funcname)
+                return func(*args)
+
+    return self.notfound()
+
+def GET_index(self):
+    status = &#39;200 OK&#39;
+    response_headers = [(&#39;Content-type&#39;, &#39;text/plain&#39;)]
+    self.start(status, response_headers)
+    yield &amp;quot;Welcome!\n&amp;quot;
+
+def GET_hello(self, name): 
+    status = &#39;200 OK&#39;
+    response_headers = [(&#39;Content-type&#39;, &#39;text/plain&#39;)]
+    self.start(status, response_headers)
+    yield &amp;quot;Hello %s!\n&amp;quot; % name
+
+def notfound(self):
+    status = &#39;404 Not Found&#39;
+    response_headers = [(&#39;Content-type&#39;, &#39;text/plain&#39;)]
+    self.start(status, response_headers)
+    yield &amp;quot;Not Found\n&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;消除GET_*方法中的重复代码，剥离出urls配置 和 GET_*方法
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;#!/usr/bin/env python&lt;/p&gt;
+
+&lt;h1 id=&#34;coding-utf-8-2&#34;&gt;-&lt;em&gt;- coding: utf-8 -&lt;/em&gt;-&lt;/h1&gt;
+
+&lt;p&gt;&amp;rdquo;&amp;ldquo;&amp;ldquo;application.py&amp;rdquo;&amp;ldquo;&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;import re&lt;/p&gt;
+
+&lt;p&gt;class my_app:
+    &amp;ldquo;&amp;rdquo;&amp;ldquo;my simple web framework&amp;rdquo;&amp;ldquo;&amp;rdquo;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;headers = []
+
+def __init__(self, urls=(), fvars={}):
+    self._urls = urls
+    self._fvars = fvars
+
+def __call__(self, environ, start_response):
+    self._status = &#39;200 OK&#39; # 默认状态OK
+    del self.headers[:] # 清空上一次的headers
+
+    result = self._delegate(environ)
+    start_response(self._status, self.headers)
+
+    # 将返回值result（字符串 或者 字符串列表）转换为迭代对象
+    if isinstance(result, basestring):
+        return iter([result])
+    else:
+        return iter(result)
+
+def _delegate(self, environ):
+    path = environ[&#39;PATH_INFO&#39;]
+    method = environ[&#39;REQUEST_METHOD&#39;]
+
+    for pattern, name in self._urls:
+        m = re.match(&#39;^&#39; + pattern + &#39;$&#39;, path)
+        if m:
+            # pass the matched groups as arguments to the function
+            args = m.groups()
+            funcname = method.upper() # 方法名大写（如GET、POST）
+            klass = self._fvars.get(name) # 根据字符串名称查找类对象
+            if hasattr(klass, funcname):
+                func = getattr(klass, funcname)
+                return func(klass(), *args)
+
+    return self._notfound()
+
+def _notfound(self):
+    self._status = &#39;404 Not Found&#39;
+    self.header(&#39;Content-type&#39;, &#39;text/plain&#39;)
+    return &amp;quot;Not Found\n&amp;quot;
+
+@classmethod
+def header(cls, name, value):
+    cls.headers.append((name, value))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;#!/usr/bin/env python&lt;/p&gt;
+
+&lt;h1 id=&#34;coding-utf-8-3&#34;&gt;-&lt;em&gt;- coding: utf-8 -&lt;/em&gt;-&lt;/h1&gt;
+
+&lt;p&gt;&amp;rdquo;&amp;ldquo;&amp;ldquo;code.py&amp;rdquo;&amp;ldquo;&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;from application import my_app&lt;/p&gt;
+
+&lt;p&gt;urls = (
+    (&amp;ldquo;/&amp;rdquo;, &amp;ldquo;index&amp;rdquo;),
+    (&amp;ldquo;/hello/(.*)&amp;ldquo;, &amp;ldquo;hello&amp;rdquo;),
+)&lt;/p&gt;
+
+&lt;p&gt;wsgiapp = my_app(urls, globals())&lt;/p&gt;
+
+&lt;p&gt;class index:
+    def GET(self):
+        my_app.header(&amp;lsquo;Content-type&amp;rsquo;, &amp;lsquo;text/plain&amp;rsquo;)
+        return &amp;ldquo;Welcome!\n&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;class hello:
+    def GET(self, name):
+        my_app.header(&amp;lsquo;Content-type&amp;rsquo;, &amp;lsquo;text/plain&amp;rsquo;)
+        return &amp;ldquo;Hello %s!\n&amp;rdquo; % name&lt;/p&gt;
+
+&lt;p&gt;if &lt;strong&gt;name&lt;/strong&gt; == &amp;lsquo;&lt;strong&gt;main&lt;/strong&gt;&amp;lsquo;:
+    from wsgiref.simple_server import make_server
+    httpd = make_server(&amp;ldquo;, 8086, wsgiapp)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;sa = httpd.socket.getsockname()
+print &#39;http://{0}:{1}/&#39;.format(*sa)
+
+# Respond to requests until process is killed
+httpd.serve_forever()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;```
+这里的web server是用了 python自带的wsgiref，有兴趣的同学可以看一下他的源码实现，看看和我们自己实现的web server有多大的区别.推荐一篇大神写的文章&lt;br /&gt;
+&lt;a href=&#34;http://blog.csdn.net/on_1y/article/details/18818081&#34;&gt;wsgiref 源代码分析&lt;/a&gt;&lt;/p&gt;
+</description>
         </item>
       
     
