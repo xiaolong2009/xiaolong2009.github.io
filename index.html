@@ -146,6 +146,18 @@
     </div>
   
     <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/04/11/%E7%94%B1wsgi%E6%83%B3%E5%88%B0%E7%9A%84/">由WSGI想到的</a></h1>
+        <span class="post-date">Apr 11 2016</span>
+        由WSGI想到的 对于一个python的web项目, 在一次http请求的背后究竟发生了什么呢?今天通过这篇博客跟大家说道说道
+背景 python web开发中，服务端程序程序可以分为两个部分，一是服务器程序，二是应用程序。前者负责把客户端请求接受、整理，后者负责具体逻辑处理。为了方便应用程序的开发，通常把常用的功能封装起来成为各种web开发框架，如django、flask等，这些应用程序都要跟服务器程序配合才能为用户服务。但是问题来了，服务器程序和应用程序之间怎么搭配呢？这时候就需要一个标准，只要server和web app都支持这个标准，那他们就可以配合使用，一旦标准确定，双方各自实现。这样，服务器可以支持更多支持标准的框架，框架也可以使用更多支持标准的服务器。在python web开发中,这个标准就是The Web Server Gateway Interface也就是WSGI. WSGI 简介 WSGI主要是对应用程序与服务器端的一些规定，所以，它的主要内容就分为两个部分。
+应用程序(app)  app必须是一个callable对象，可以是函数，类，实现了call方法的实例对象 app接受2个参数environ和start_response，environ是一个包含了CGI环境变量与WSGI相关变量的字典， start_response是一个函数对象，用于处理response header，接受2个参数status是response状态码，headers是response header的列表，列表项是元组 app返回一个可迭代对象，可以是list，实现了iter方法的类，其它的可迭代对象。用于response body
+一个wsgi app看起来应该是这样的：
+def app(environ, start_response): &quot;&quot;&quot;A barebones WSGI application. This is a starting point for your own Web framework :) &quot;&quot;&quot; status = '200 OK' response_headers = [('Content-Type', 'text/plain')] start_response(status, response_headers) return ['Hello world from a simple WSGI application!\n']  服务器程序 把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response
+ 调用应用程序
+ 迭代访问应用程序的返回结果，并将其传回客户端
+    </div>
+  
+    <div class="post">
         <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/03/11/django-model-trace-%E6%A8%A1%E5%9E%8B%E5%8F%98%E6%9B%B4%E8%B7%9F%E8%B8%AA/">Django Model Trace 模型变更跟踪</a></h1>
         <span class="post-date">Mar 11 2016</span>
         <p>在公司业务中有很多模块需要记录模型的变更历史，刚开始的时候会针对需要变更记录的表增加一个变更记录表，然后做针对性的开发。后来类似的需求多了，而且不需要很详细的记录，所以单独提取了一个比较简单的模型跟踪模块出来。</p>
@@ -224,17 +236,6 @@
 </code></pre></div>
 
 <p></p>
-    </div>
-  
-    <div class="post">
-        <h1 class="post-title"><a href="https://xiaolong2009.github.io/1/01/01/"></a></h1>
-        <span class="post-date">Jan 1 0001</span>
-        date: 2016-04-11T11:46:53+08:00 title: 由WSGI想到的
-tags: [&ldquo;python&rdquo;] 由WSGI想到的 对于一个python的web项目, 在一次http请求的背后究竟发生了什么呢?今天通过这篇博客跟大家说道说道
-背景 python web开发中，服务端程序程序可以分为两个部分，一是服务器程序，二是应用程序。前者负责把客户端请求接受、整理，后者负责具体逻辑处理。为了方便应用程序的开发，通常把常用的功能封装起来成为各种web开发框架，如django、flask等，这些应用程序都要跟服务器程序配合才能为用户服务。但是问题来了，服务器程序和应用程序之间怎么搭配呢？这时候就需要一个标准，只要server和web app都支持这个标准，那他们就可以配合使用，一旦标准确定，双方各自实现。这样，服务器可以支持更多支持标准的框架，框架也可以使用更多支持标准的服务器。在python web开发中,这个标准就是The Web Server Gateway Interface也就是WSGI. WSGI 简介 WSGI主要是对应用程序与服务器端的一些规定，所以，它的主要内容就分为两个部分。
-应用程序(app)  app必须是一个callable对象，可以是函数，类，实现了call方法的实例对象 app接受2个参数environ和start_response，environ是一个包含了CGI环境变量与WSGI相关变量的字典， start_response是一个函数对象，用于处理response header，接受2个参数status是response状态码，headers是response header的列表，列表项是元组 app返回一个可迭代对象，可以是list，实现了iter方法的类，其它的可迭代对象。用于response body
-一个wsgi app看起来应该是这样的：
-def app(environ, start_response): &quot;&quot;&quot;A barebones WSGI application. This is a starting point for your own Web framework :) &quot;&quot;&quot; status = '200 OK' response_headers = [('Content-Type', 'text/plain')] start_response(status, response_headers) return ['Hello world from a simple WSGI application!\n']  服务器程序 把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response
     </div>
   
 </div>
