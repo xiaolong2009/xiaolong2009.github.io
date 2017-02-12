@@ -150,14 +150,12 @@
     
       
         <item>
-          <title>由WSGI想到的</title>
-          <link>https://xiaolong2009.github.io/2016/04/11/%E7%94%B1wsgi%E6%83%B3%E5%88%B0%E7%9A%84/</link>
+          <title></title>
+          <link>https://xiaolong2009.github.io/2016/04/11/</link>
           <pubDate>Mon, 11 Apr 2016 11:46:53 CST</pubDate>
           <author>Xiaolong</author>
-          <guid>https://xiaolong2009.github.io/2016/04/11/%E7%94%B1wsgi%E6%83%B3%E5%88%B0%E7%9A%84/</guid>
+          <guid>https://xiaolong2009.github.io/2016/04/11/</guid>
           <description>
-
-&lt;h1 id=&#34;由wsgi想到的&#34;&gt;由WSGI想到的&lt;/h1&gt;
 
 &lt;p&gt;对于一个python的web项目, 在一次http请求的背后究竟发生了什么呢?今天通过这篇博客跟大家说道说道&lt;/p&gt;
 

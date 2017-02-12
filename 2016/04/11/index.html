@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+       &middot; V2GO
+    
+  </title>
+
+  
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/poole.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/syntax.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.proxy.ustclug.org/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://xiaolong2009.github.io/assets/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="https://xiaolong2009.github.io/assets/favicon.ico">
+
+  
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="https://xiaolong2009.github.io/feed.xml">
+</head>
+
+
+  <body class="theme-base-0d">
+
+    
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>My notes and thoughts.</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/">Home</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/post">Posts</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/tags">Tags</a>
+
+    
+    
+      
+        <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/about/">About</a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+
+    <a class="sidebar-nav-item" href="https://github.com/xiaolong2009" target="_blank">GitHub</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>&copy; 1. All rights reserved.</p>
+  </div>
+</div>
+
+
+    
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="https://xiaolong2009.github.io/" title="Home">V2GO</a>
+            <small>Way to Coding</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+
+
+<div class="post">
+  <h1 class="post-title"></h1>
+  <span class="post-date">Apr 11 2016</span>
+  
+
+<p>对于一个python的web项目, 在一次http请求的背后究竟发生了什么呢?今天通过这篇博客跟大家说道说道</p>
+
+<hr />
+
+<h2 id="背景">背景</h2>
+
+<p>python web开发中，服务端程序程序可以分为两个部分，一是服务器程序，二是应用程序。前者负责把客户端请求接受、整理，后者负责具体逻辑处理。为了方便应用程序的开发，通常把常用的功能封装起来成为各种web开发框架，如django、flask等，这些应用程序都要跟服务器程序配合才能为用户服务。但是问题来了，服务器程序和应用程序之间怎么搭配呢？这时候就需要一个标准，只要server和web app都支持这个标准，那他们就可以配合使用，一旦标准确定，双方各自实现。这样，服务器可以支持更多支持标准的框架，框架也可以使用更多支持标准的服务器。<strong>在python web开发中,这个标准就是The Web Server Gateway Interface也就是WSGI.</strong>
+<img src="https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_wsgi_interop.png" alt="image" /></p>
+
+<h2 id="wsgi-简介">WSGI 简介</h2>
+
+<p>WSGI主要是对应用程序与服务器端的一些规定，所以，它的主要内容就分为两个部分。</p>
+
+<h3 id="应用程序-app">应用程序(app)</h3>
+
+<ol>
+<li>app必须是一个callable对象，可以是函数，类，实现了<strong>call</strong>方法的实例对象</li>
+<li>app接受2个参数environ和start_response，environ是一个包含了CGI环境变量与WSGI相关变量的字典， start_response是一个函数对象，用于处理response header，接受2个参数status是response状态码，headers是response header的列表，列表项是元组</li>
+
+<li><p>app返回一个可迭代对象，可以是list，实现了<strong>iter</strong>方法的类，其它的可迭代对象。用于response body<br />
+一个wsgi app看起来应该是这样的：</p>
+
+<pre><code>def app(environ, start_response):
+&quot;&quot;&quot;A barebones WSGI application.
+
+This is a starting point for your own Web framework :)
+&quot;&quot;&quot;
+status = '200 OK'
+response_headers = [('Content-Type', 'text/plain')]
+start_response(status, response_headers)
+return ['Hello world from a simple WSGI application!\n']
+</code></pre>
+
+<h3 id="服务器程序">服务器程序</h3></li>
+
+<li><p>把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response</p></li>
+
+<li><p>调用应用程序</p></li>
+
+<li><p>迭代访问应用程序的返回结果，并将其传回客户端<br />
+一个server看起来应该是这样的：</p>
+
+<pre><code>def run(application):
+environ = {}
+
+# set environ
+def write(data):
+    pass
+
+def start_response(status, response_headers, exc_info=None):
+    return write
+
+try:
+    result = application(environ, start_response)
+finally:
+    if hasattr(result, 'close'):
+        result.close()
+
+if hasattr(result, '__len__'):
+    # result must be accumulated
+    pass
+
+
+for data in result:
+    write(data)
+</code></pre>
+
+<h2 id="wsgi详解">WSGI详解</h2>
+
+<p>看到这里相信大多数同学还是一脸懵B，下面我们来详细说一下这两个部分，按照请求到达后端的顺序，我们先从服务器程序说起</p>
+
+<h3 id="服务器程序-1">服务器程序</h3>
+
+<p>先上代码，将下面的代码存为webserver.py
+```
+import socket
+import StringIO
+import sys</p></li>
+</ol>
+
+<p>class WSGIServer(object):</p>
+
+<pre><code>address_family = socket.AF_INET
+socket_type = socket.SOCK_STREAM
+request_queue_size = 1
+
+def __init__(self, server_address):
+    # Create a listening socket
+    self.listen_socket = listen_socket = socket.socket(
+        self.address_family,
+        self.socket_type
+    )
+    # Allow to reuse the same address
+    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # Bind
+    listen_socket.bind(server_address)
+    # Activate
+    listen_socket.listen(self.request_queue_size)
+    # Get server host name and port
+    host, port = self.listen_socket.getsockname()[:2]
+    self.server_name = socket.getfqdn(host)
+    self.server_port = port
+    # Return headers set by Web framework/Web application
+    self.headers_set = []
+
+def set_app(self, application):
+    self.application = application
+
+def serve_forever(self):
+    listen_socket = self.listen_socket
+    while True:
+        # New client connection
+        self.client_connection, client_address = listen_socket.accept()
+        # Handle one request and close the client connection. Then
+        # loop over to wait for another client connection
+        self.handle_one_request()
+
+def handle_one_request(self):
+    self.request_data = request_data = self.client_connection.recv(1024)
+    # Print formatted request data a la 'curl -v'
+    print(''.join(
+        '&lt; {line}\n'.format(line=line)
+        for line in request_data.splitlines()
+    ))
+
+    self.parse_request(request_data)
+
+    # Construct environment dictionary using request data
+    env = self.get_environ()
+
+    # It's time to call our application callable and get
+    # back a result that will become HTTP response body
+    result = self.application(env, self.start_response)
+
+    # Construct a response and send it back to the client
+    self.finish_response(result)
+
+def parse_request(self, text):
+    request_line = text.splitlines()[0]
+    request_line = request_line.rstrip('\r\n')
+    # Break down the request line into components
+    (self.request_method,  # GET
+     self.path,            # /hello
+     self.request_version  # HTTP/1.1
+     ) = request_line.split()
+
+def get_environ(self):
+    env = {}
+    # The following code snippet does not follow PEP8 conventions
+    # but it's formatted the way it is for demonstration purposes
+    # to emphasize the required variables and their values
+    #
+    # Required WSGI variables
+    env['wsgi.version']      = (1, 0)
+    env['wsgi.url_scheme']   = 'http'
+    env['wsgi.input']        = StringIO.StringIO(self.request_data)
+    env['wsgi.errors']       = sys.stderr
+    env['wsgi.multithread']  = False
+    env['wsgi.multiprocess'] = False
+    env['wsgi.run_once']     = False
+    # Required CGI variables
+    env['REQUEST_METHOD']    = self.request_method    # GET
+    env['PATH_INFO']         = self.path              # /hello
+    env['SERVER_NAME']       = self.server_name       # localhost
+    env['SERVER_PORT']       = str(self.server_port)  # 8888
+    return env
+
+def start_response(self, status, response_headers, exc_info=None):
+    # Add necessary server headers
+    server_headers = [
+        ('Date', 'Tue, 31 Mar 2015 12:54:48 GMT'),
+        ('Server', 'WSGIServer 0.2'),
+    ]
+    self.headers_set = [status, response_headers + server_headers]
+    # To adhere to WSGI specification the start_response must return
+    # a 'write' callable. We simplicity's sake we'll ignore that detail
+    # for now.
+    # return self.finish_response
+
+def finish_response(self, result):
+    try:
+        status, response_headers = self.headers_set
+        response = 'HTTP/1.1 {status}\r\n'.format(status=status)
+        for header in response_headers:
+            response += '{0}: {1}\r\n'.format(*header)
+        response += '\r\n'
+        for data in result:
+            response += data
+        # Print formatted response data a la 'curl -v'
+        print(''.join(
+            '&gt; {line}\n'.format(line=line)
+            for line in response.splitlines()
+        ))
+        self.client_connection.sendall(response)
+    finally:
+        self.client_connection.close()
+</code></pre>
+
+<p>SERVER_ADDRESS = (HOST, PORT) = &ldquo;, 8888</p>
+
+<p>def make_server(server_address, application):
+    server = WSGIServer(server_address)
+    server.set_app(application)
+    return server</p>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&lsquo;:
+    if len(sys.argv) &lt; 2:
+        sys.exit(&lsquo;Provide a WSGI application object as module:callable&rsquo;)
+    app_path = sys.argv[1]
+    module, application = app_path.split(&rsquo;:&lsquo;)
+    module = <strong>import</strong>(module)
+    application = getattr(module, application)
+    httpd = make_server(SERVER_ADDRESS, application)
+    print(&lsquo;WSGIServer: Serving HTTP on port {port} &hellip;\n&rsquo;.format(port=PORT))
+    httpd.serve_forever()</p>
+
+<pre><code>这是一段比较完整的web server的代码，可以和django、flask等框架配置使用，下面用flask先来演示一下怎么使用，再具体分析代码的逻辑  
+1. 先创建一个虚拟环境
+</code></pre>
+
+<p>$ [sudo] pip install virtualenv
+$ mkdir ~/envs
+$ virtualenv ~/envs/test/
+$ cd ~/envs/test/
+$ ls
+bin  include  lib
+$ source bin/activate
+(test) $ pip install flask</p>
+
+<pre><code>2. 将下面的代码存为flaskapp.py
+</code></pre>
+
+<p>from flask import Flask
+from flask import Response
+flask_app = Flask(&lsquo;flaskapp&rsquo;)</p>
+
+<p>@flask_app.route(&lsquo;/hello&rsquo;)
+def hello_world():
+    return Response(
+        &lsquo;Hello world from Flask!\n&rsquo;,
+        mimetype=&lsquo;text/plain&rsquo;
+    )</p>
+
+<p>app = flask_app.wsgi_app</p>
+
+<pre><code>3. 用webserver启动flaskapp
+</code></pre>
+
+<p>(test) $ python webserver.py flaskapp:app
+WSGIServer: Serving HTTP on port 8888 &hellip;</p>
+
+<pre><code>4. 测试
+在输入 http://localhost:8888/hello 然后访问
+
+![image](https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_browser_flask.png)
+
+显然 我们的代码生效了
+
+现在我们回过头来看一下webserver.py是怎么实现的    
+1. 我们从flask里导入了application，application是由web 框架提供的。
+2. 创建一个socket链接，然后通过socket的recv方法读取request
+3. 对请求进行解析，解析的结果会有request_method、path、request_version等信息
+4. 用解析出来的信息创建一个environ，environ是一个字典，里面包含了CGI环境变量和wsgi需要的一些变量
+5. 调用application，并将environ和start_response传进去，然后得到一个结果
+6. 解析得到的结果，并拼接出response的header和body，其中header是由start_response产生的，body是遍历application得到的。
+7. 最后通过socket的sendall方法返回给客户端。
+![image](https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_server_summary.png)
+好了一次完整的请求就结束了，这里我们可以看到服务端程序主要是对请求进行解析，并拼凑出environ传递给应用程序，具体的处理流程其实应用程序那边，也就是上面的第4和第5步，那应用程序拿到environ后具体是怎么处理的呢，下面我们来详细说一下应用程序
+### 应用器程序
+先回顾一下一个最简单的应用程序的代码
+</code></pre>
+
+<p>def app(environ, start_response):
+    &ldquo;&rdquo;&ldquo;A barebones WSGI application.</p>
+
+<pre><code>This is a starting point for your own Web framework :)
+&quot;&quot;&quot;
+status = '200 OK'
+response_headers = [('Content-Type', 'text/plain')]
+start_response(status, response_headers)
+return ['Hello world from a simple WSGI application!\n']
+</code></pre>
+
+<pre><code>大家肯定会说我写的django或者flask的代码不是这样的，这里仅仅是一个演示，没有解析environ也没有具体的处理逻辑，这里想说明的是，应用程序和服务器程序是怎样配合的。start_response是一个函数对象，用于处理response header，app返回的是一个可迭代对象，web server会遍历这个可迭代对象来产生response body。
+但是在实际的web框架中可不仅仅是这么简单，一般的web框架都会实现url路由，cookie处理等等中间件。下面我们看一下一个web框架是怎么写的。
+</code></pre>
+
+<p>#!/usr/bin/env python</p>
+
+<h1 id="coding-utf-8">-<em>- coding: utf-8 -</em>-</h1>
+
+<p>&rdquo;&ldquo;&ldquo;application.py&rdquo;&ldquo;&rdquo;</p>
+
+<p>class my_app:
+    def <strong>init</strong>(self, environ, start_response):
+        self.environ = environ
+        self.start = start_response</p>
+
+<pre><code>def __iter__(self):
+    path = self.environ['PATH_INFO']
+    if path == &quot;/&quot;:
+        return self.GET_index()
+    elif path == &quot;/hello&quot;:
+        return self.GET_hello()
+    else:
+        return self.notfound()
+
+def GET_index(self):
+    status = '200 OK'
+    response_headers = [('Content-type', 'text/plain')]
+    self.start(status, response_headers)
+    yield &quot;Welcome!\n&quot;
+
+def GET_hello(self):
+    status = '200 OK'
+    response_headers = [('Content-type', 'text/plain')]
+    self.start(status, response_headers)
+    yield &quot;Hello world!\n&quot;
+
+def notfound(self):
+    status = '404 Not Found'
+    response_headers = [('Content-type', 'text/plain')]
+    self.start(status, response_headers)
+    yield &quot;Not Found\n&quot;
+</code></pre>
+
+<pre><code>从environ里读取了url的path，不同的url用不同的函数进行处理，实现了最简单的url路由的功能，但是url还是硬编码，下面用正则来匹配url
+</code></pre>
+
+<p>#!/usr/bin/env python</p>
+
+<h1 id="coding-utf-8-1">-<em>- coding: utf-8 -</em>-</h1>
+
+<p>import re</p>
+
+<p>class my_app:</p>
+
+<pre><code>urls = (
+    (&quot;/&quot;, &quot;index&quot;),
+    (&quot;/hello/(.*)&quot;, &quot;hello&quot;),
+)
+
+def __init__(self, environ, start_response):
+    self.environ = environ
+    self.start = start_response
+
+def __iter__(self):
+    path = self.environ['PATH_INFO']
+    method = self.environ['REQUEST_METHOD']
+
+    for pattern, name in self.urls:
+        m = re.match('^' + pattern + '$', path)
+        if m:
+            # pass the matched groups as arguments to the function
+            args = m.groups()
+            funcname = method.upper() + '_' + name
+            if hasattr(self, funcname):
+                func = getattr(self, funcname)
+                return func(*args)
+
+    return self.notfound()
+
+def GET_index(self):
+    status = '200 OK'
+    response_headers = [('Content-type', 'text/plain')]
+    self.start(status, response_headers)
+    yield &quot;Welcome!\n&quot;
+
+def GET_hello(self, name): 
+    status = '200 OK'
+    response_headers = [('Content-type', 'text/plain')]
+    self.start(status, response_headers)
+    yield &quot;Hello %s!\n&quot; % name
+
+def notfound(self):
+    status = '404 Not Found'
+    response_headers = [('Content-type', 'text/plain')]
+    self.start(status, response_headers)
+    yield &quot;Not Found\n&quot;
+</code></pre>
+
+<pre><code>消除GET_*方法中的重复代码，剥离出urls配置 和 GET_*方法
+</code></pre>
+
+<p>#!/usr/bin/env python</p>
+
+<h1 id="coding-utf-8-2">-<em>- coding: utf-8 -</em>-</h1>
+
+<p>&rdquo;&ldquo;&ldquo;application.py&rdquo;&ldquo;&rdquo;</p>
+
+<p>import re</p>
+
+<p>class my_app:
+    &ldquo;&rdquo;&ldquo;my simple web framework&rdquo;&ldquo;&rdquo;</p>
+
+<pre><code>headers = []
+
+def __init__(self, urls=(), fvars={}):
+    self._urls = urls
+    self._fvars = fvars
+
+def __call__(self, environ, start_response):
+    self._status = '200 OK' # 默认状态OK
+    del self.headers[:] # 清空上一次的headers
+
+    result = self._delegate(environ)
+    start_response(self._status, self.headers)
+
+    # 将返回值result（字符串 或者 字符串列表）转换为迭代对象
+    if isinstance(result, basestring):
+        return iter([result])
+    else:
+        return iter(result)
+
+def _delegate(self, environ):
+    path = environ['PATH_INFO']
+    method = environ['REQUEST_METHOD']
+
+    for pattern, name in self._urls:
+        m = re.match('^' + pattern + '$', path)
+        if m:
+            # pass the matched groups as arguments to the function
+            args = m.groups()
+            funcname = method.upper() # 方法名大写（如GET、POST）
+            klass = self._fvars.get(name) # 根据字符串名称查找类对象
+            if hasattr(klass, funcname):
+                func = getattr(klass, funcname)
+                return func(klass(), *args)
+
+    return self._notfound()
+
+def _notfound(self):
+    self._status = '404 Not Found'
+    self.header('Content-type', 'text/plain')
+    return &quot;Not Found\n&quot;
+
+@classmethod
+def header(cls, name, value):
+    cls.headers.append((name, value))
+</code></pre>
+
+<pre><code>
+</code></pre>
+
+<p>#!/usr/bin/env python</p>
+
+<h1 id="coding-utf-8-3">-<em>- coding: utf-8 -</em>-</h1>
+
+<p>&rdquo;&ldquo;&ldquo;code.py&rdquo;&ldquo;&rdquo;</p>
+
+<p>from application import my_app</p>
+
+<p>urls = (
+    (&ldquo;/&rdquo;, &ldquo;index&rdquo;),
+    (&ldquo;/hello/(.*)&ldquo;, &ldquo;hello&rdquo;),
+)</p>
+
+<p>wsgiapp = my_app(urls, globals())</p>
+
+<p>class index:
+    def GET(self):
+        my_app.header(&lsquo;Content-type&rsquo;, &lsquo;text/plain&rsquo;)
+        return &ldquo;Welcome!\n&rdquo;</p>
+
+<p>class hello:
+    def GET(self, name):
+        my_app.header(&lsquo;Content-type&rsquo;, &lsquo;text/plain&rsquo;)
+        return &ldquo;Hello %s!\n&rdquo; % name</p>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&lsquo;:
+    from wsgiref.simple_server import make_server
+    httpd = make_server(&ldquo;, 8086, wsgiapp)</p>
+
+<pre><code>sa = httpd.socket.getsockname()
+print 'http://{0}:{1}/'.format(*sa)
+
+# Respond to requests until process is killed
+httpd.serve_forever()
+</code></pre>
+
+<p>```
+这里的web server是用了 python自带的wsgiref，有兴趣的同学可以看一下他的源码实现，看看和我们自己实现的web server有多大的区别.推荐一篇大神写的文章<br />
+<a href="http://blog.csdn.net/on_1y/article/details/18818081">wsgiref 源代码分析</a></p>
+
+
+
+</div>
+
+
+
+    <div class="ds-thread" data-thread-key="/2016/04/11/" data-title="" data-url="https://xiaolong2009.github.io/2016/04/11/"></div>
+
+
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"Xiaolong"};
+    (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';ds.async = true;
+        ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0]
+         || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+    </script>
+
+
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  </body>
+</html>
+
