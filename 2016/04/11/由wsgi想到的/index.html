@@ -121,17 +121,16 @@
 
 <li><p>app返回一个可迭代对象，可以是list，实现了<strong>iter</strong>方法的类，其它的可迭代对象。用于response body<br />
 一个wsgi app看起来应该是这样的：</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;A barebones WSGI application.</span>
 
-<pre><code>def app(environ, start_response):
-&quot;&quot;&quot;A barebones WSGI application.
-
-This is a starting point for your own Web framework :)
-&quot;&quot;&quot;
-status = '200 OK'
-response_headers = [('Content-Type', 'text/plain')]
-start_response(status, response_headers)
-return ['Hello world from a simple WSGI application!\n']
-</code></pre>
+<span class="sd">This is a starting point for your own Web framework :)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span>
+<span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+<span class="n">start_response</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+<span class="k">return</span> <span class="p">[</span><span class="s">&#39;Hello world from a simple WSGI application!</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
+</code></pre></div>
 
 <h3 id="服务器程序">服务器程序</h3></li>
 
@@ -141,31 +140,30 @@ return ['Hello world from a simple WSGI application!\n']
 
 <li><p>迭代访问应用程序的返回结果，并将其传回客户端<br />
 一个server看起来应该是这样的：</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">application</span><span class="p">):</span>
+<span class="n">environ</span> <span class="o">=</span> <span class="p">{}</span>
 
-<pre><code>def run(application):
-environ = {}
+<span class="c"># set environ</span>
+<span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">pass</span>
 
-# set environ
-def write(data):
-    pass
+<span class="k">def</span> <span class="nf">start_response</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">write</span>
 
-def start_response(status, response_headers, exc_info=None):
-    return write
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">application</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">&#39;close&#39;</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-try:
-    result = application(environ, start_response)
-finally:
-    if hasattr(result, 'close'):
-        result.close()
-
-if hasattr(result, '__len__'):
-    # result must be accumulated
-    pass
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">&#39;__len__&#39;</span><span class="p">):</span>
+    <span class="c"># result must be accumulated</span>
+    <span class="k">pass</span>
 
 
-for data in result:
-    write(data)
-</code></pre>
+<span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
 
 <h2 id="wsgi详解">WSGI详解</h2>
 
@@ -174,7 +172,7 @@ for data in result:
 <h3 id="服务器程序-1">服务器程序</h3>
 
 <p>先上代码，将下面的代码存为webserver.py
-```
+```python
 import socket
 import StringIO
 import sys</p></li>
@@ -318,23 +316,24 @@ def finish_response(self, result):
 
 <pre><code>这是一段比较完整的web server的代码，可以和django、flask等框架配置使用，下面用flask先来演示一下怎么使用，再具体分析代码的逻辑  
 1. 先创建一个虚拟环境
-</code></pre>
-
-<p>$ [sudo] pip install virtualenv
+```python
+$ [sudo] pip install virtualenv
 $ mkdir ~/envs
 $ virtualenv ~/envs/test/
 $ cd ~/envs/test/
 $ ls
 bin  include  lib
 $ source bin/activate
-(test) $ pip install flask</p>
-
-<pre><code>2. 将下面的代码存为flaskapp.py
+(test) $ pip install flask
 </code></pre>
 
-<p>from flask import Flask
+<ol>
+<li>将下面的代码存为flaskapp.py
+```python
+from flask import Flask
 from flask import Response
-flask_app = Flask(&lsquo;flaskapp&rsquo;)</p>
+flask_app = Flask(&lsquo;flaskapp&rsquo;)</li>
+</ol>
 
 <p>@flask_app.route(&lsquo;/hello&rsquo;)
 def hello_world():
@@ -346,19 +345,21 @@ def hello_world():
 <p>app = flask_app.wsgi_app</p>
 
 <pre><code>3. 用webserver启动flaskapp
+```python
+(test) $ python webserver.py flaskapp:app
+WSGIServer: Serving HTTP on port 8888 ...
 </code></pre>
 
-<p>(test) $ python webserver.py flaskapp:app
-WSGIServer: Serving HTTP on port 8888 &hellip;</p>
+<ol>
+<li>测试
+在输入 <a href="http://localhost:8888/hello">http://localhost:8888/hello</a> 然后访问</li>
+</ol>
 
-<pre><code>4. 测试
-在输入 http://localhost:8888/hello 然后访问
+<p><img src="https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_browser_flask.png" alt="image" /></p>
 
-![image](https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_browser_flask.png)
+<p>显然 我们的代码生效了</p>
 
-显然 我们的代码生效了
-
-现在我们回过头来看一下webserver.py是怎么实现的    
+<p>现在我们回过头来看一下webserver.py是怎么实现的<br />
 1. 我们从flask里导入了application，application是由web 框架提供的。
 2. 创建一个socket链接，然后通过socket的recv方法读取request
 3. 对请求进行解析，解析的结果会有request_method、path、request_version等信息
@@ -366,222 +367,208 @@ WSGIServer: Serving HTTP on port 8888 &hellip;</p>
 5. 调用application，并将environ和start_response传进去，然后得到一个结果
 6. 解析得到的结果，并拼接出response的header和body，其中header是由start_response产生的，body是遍历application得到的。
 7. 最后通过socket的sendall方法返回给客户端。
-![image](https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_server_summary.png)
-好了一次完整的请求就结束了，这里我们可以看到服务端程序主要是对请求进行解析，并拼凑出environ传递给应用程序，具体的处理流程其实应用程序那边，也就是上面的第4和第5步，那应用程序拿到environ后具体是怎么处理的呢，下面我们来详细说一下应用程序
-### 应用器程序
-先回顾一下一个最简单的应用程序的代码
-</code></pre>
+<img src="https://ruslanspivak.com/lsbaws-part2/lsbaws_part2_server_summary.png" alt="image" />
+好了一次完整的请求就结束了，这里我们可以看到服务端程序主要是对请求进行解析，并拼凑出environ传递给应用程序，具体的处理流程其实应用程序那边，也就是上面的第4和第5步，那应用程序拿到environ后具体是怎么处理的呢，下面我们来详细说一下应用程序</p>
 
-<p>def app(environ, start_response):
-    &ldquo;&rdquo;&ldquo;A barebones WSGI application.</p>
+<h3 id="应用器程序">应用器程序</h3>
 
-<pre><code>This is a starting point for your own Web framework :)
-&quot;&quot;&quot;
-status = '200 OK'
-response_headers = [('Content-Type', 'text/plain')]
-start_response(status, response_headers)
-return ['Hello world from a simple WSGI application!\n']
-</code></pre>
+<p>先回顾一下一个最简单的应用程序的代码</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A barebones WSGI application.</span>
 
-<pre><code>大家肯定会说我写的django或者flask的代码不是这样的，这里仅仅是一个演示，没有解析environ也没有具体的处理逻辑，这里想说明的是，应用程序和服务器程序是怎样配合的。start_response是一个函数对象，用于处理response header，app返回的是一个可迭代对象，web server会遍历这个可迭代对象来产生response body。
-但是在实际的web框架中可不仅仅是这么简单，一般的web框架都会实现url路由，cookie处理等等中间件。下面我们看一下一个web框架是怎么写的。
-</code></pre>
+<span class="sd">    This is a starting point for your own Web framework :)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span>
+    <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+    <span class="n">start_response</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s">&#39;Hello world from a simple WSGI application!</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
+</code></pre></div>
 
-<p>#!/usr/bin/env python</p>
+<p>大家肯定会说我写的django或者flask的代码不是这样的，这里仅仅是一个演示，没有解析environ也没有具体的处理逻辑，这里想说明的是，应用程序和服务器程序是怎样配合的。start_response是一个函数对象，用于处理response header，app返回的是一个可迭代对象，web server会遍历这个可迭代对象来产生response body。
+但是在实际的web框架中可不仅仅是这么简单，一般的web框架都会实现url路由，cookie处理等等中间件。下面我们看一下一个web框架是怎么写的。</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 
-<h1 id="coding-utf-8">-<em>- coding: utf-8 -</em>-</h1>
+<span class="sd">&quot;&quot;&quot;application.py&quot;&quot;&quot;</span>
 
-<p>&rdquo;&ldquo;&ldquo;application.py&rdquo;&ldquo;&rdquo;</p>
+<span class="k">class</span> <span class="nc">my_app</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">environ</span> <span class="o">=</span> <span class="n">environ</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start_response</span>
 
-<p>class my_app:
-    def <strong>init</strong>(self, environ, start_response):
-        self.environ = environ
-        self.start = start_response</p>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="o">==</span> <span class="s">&quot;/&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GET_index</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">path</span> <span class="o">==</span> <span class="s">&quot;/hello&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GET_hello</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">notfound</span><span class="p">()</span>
 
-<pre><code>def __iter__(self):
-    path = self.environ['PATH_INFO']
-    if path == &quot;/&quot;:
-        return self.GET_index()
-    elif path == &quot;/hello&quot;:
-        return self.GET_hello()
-    else:
-        return self.notfound()
+    <span class="k">def</span> <span class="nf">GET_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span>
+        <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="s">&quot;Welcome!</span><span class="se">\n</span><span class="s">&quot;</span>
 
-def GET_index(self):
-    status = '200 OK'
-    response_headers = [('Content-type', 'text/plain')]
-    self.start(status, response_headers)
-    yield &quot;Welcome!\n&quot;
+    <span class="k">def</span> <span class="nf">GET_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span>
+        <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="s">&quot;Hello world!</span><span class="se">\n</span><span class="s">&quot;</span>
 
-def GET_hello(self):
-    status = '200 OK'
-    response_headers = [('Content-type', 'text/plain')]
-    self.start(status, response_headers)
-    yield &quot;Hello world!\n&quot;
+    <span class="k">def</span> <span class="nf">notfound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;404 Not Found&#39;</span>
+        <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="s">&quot;Not Found</span><span class="se">\n</span><span class="s">&quot;</span>
+</code></pre></div>
 
-def notfound(self):
-    status = '404 Not Found'
-    response_headers = [('Content-type', 'text/plain')]
-    self.start(status, response_headers)
-    yield &quot;Not Found\n&quot;
-</code></pre>
+<p>从environ里读取了url的path，不同的url用不同的函数进行处理，实现了最简单的url路由的功能，但是url还是硬编码，下面用正则来匹配url</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 
-<pre><code>从environ里读取了url的path，不同的url用不同的函数进行处理，实现了最简单的url路由的功能，但是url还是硬编码，下面用正则来匹配url
-</code></pre>
 
-<p>#!/usr/bin/env python</p>
+<span class="kn">import</span> <span class="nn">re</span>
 
-<h1 id="coding-utf-8-1">-<em>- coding: utf-8 -</em>-</h1>
+<span class="k">class</span> <span class="nc">my_app</span><span class="p">:</span>
 
-<p>import re</p>
+    <span class="n">urls</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot;index&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;/hello/(.*)&quot;</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
 
-<p>class my_app:</p>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">environ</span> <span class="o">=</span> <span class="n">environ</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start_response</span>
 
-<pre><code>urls = (
-    (&quot;/&quot;, &quot;index&quot;),
-    (&quot;/hello/(.*)&quot;, &quot;hello&quot;),
-)
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;REQUEST_METHOD&#39;</span><span class="p">]</span>
 
-def __init__(self, environ, start_response):
-    self.environ = environ
-    self.start = start_response
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">urls</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^&#39;</span> <span class="o">+</span> <span class="n">pattern</span> <span class="o">+</span> <span class="s">&#39;$&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="c"># pass the matched groups as arguments to the function</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+                <span class="n">funcname</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
+                    <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
-def __iter__(self):
-    path = self.environ['PATH_INFO']
-    method = self.environ['REQUEST_METHOD']
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">notfound</span><span class="p">()</span>
 
-    for pattern, name in self.urls:
-        m = re.match('^' + pattern + '$', path)
-        if m:
-            # pass the matched groups as arguments to the function
-            args = m.groups()
-            funcname = method.upper() + '_' + name
-            if hasattr(self, funcname):
-                func = getattr(self, funcname)
-                return func(*args)
+    <span class="k">def</span> <span class="nf">GET_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span>
+        <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="s">&quot;Welcome!</span><span class="se">\n</span><span class="s">&quot;</span>
 
-    return self.notfound()
+    <span class="k">def</span> <span class="nf">GET_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span> 
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span>
+        <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="s">&quot;Hello </span><span class="si">%s</span><span class="s">!</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">name</span>
 
-def GET_index(self):
-    status = '200 OK'
-    response_headers = [('Content-type', 'text/plain')]
-    self.start(status, response_headers)
-    yield &quot;Welcome!\n&quot;
+    <span class="k">def</span> <span class="nf">notfound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;404 Not Found&#39;</span>
+        <span class="n">response_headers</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">response_headers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="s">&quot;Not Found</span><span class="se">\n</span><span class="s">&quot;</span>
+</code></pre></div>
 
-def GET_hello(self, name): 
-    status = '200 OK'
-    response_headers = [('Content-type', 'text/plain')]
-    self.start(status, response_headers)
-    yield &quot;Hello %s!\n&quot; % name
+<p>消除GET<em>*方法中的重复代码，剥离出urls配置 和 GET</em>*方法</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 
-def notfound(self):
-    status = '404 Not Found'
-    response_headers = [('Content-type', 'text/plain')]
-    self.start(status, response_headers)
-    yield &quot;Not Found\n&quot;
-</code></pre>
+<span class="sd">&quot;&quot;&quot;application.py&quot;&quot;&quot;</span>
 
-<pre><code>消除GET_*方法中的重复代码，剥离出urls配置 和 GET_*方法
-</code></pre>
+<span class="kn">import</span> <span class="nn">re</span>
 
-<p>#!/usr/bin/env python</p>
+<span class="k">class</span> <span class="nc">my_app</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;my simple web framework&quot;&quot;&quot;</span>
 
-<h1 id="coding-utf-8-2">-<em>- coding: utf-8 -</em>-</h1>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[]</span>
 
-<p>&rdquo;&ldquo;&ldquo;application.py&rdquo;&ldquo;&rdquo;</p>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">urls</span><span class="o">=</span><span class="p">(),</span> <span class="n">fvars</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_urls</span> <span class="o">=</span> <span class="n">urls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fvars</span> <span class="o">=</span> <span class="n">fvars</span>
 
-<p>import re</p>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="s">&#39;200 OK&#39;</span> <span class="c"># 默认状态OK</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[:]</span> <span class="c"># 清空上一次的headers</span>
 
-<p>class my_app:
-    &ldquo;&rdquo;&ldquo;my simple web framework&rdquo;&ldquo;&rdquo;</p>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>
+        <span class="n">start_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
 
-<pre><code>headers = []
+        <span class="c"># 将返回值result（字符串 或者 字符串列表）转换为迭代对象</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">iter</span><span class="p">([</span><span class="n">result</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
-def __init__(self, urls=(), fvars={}):
-    self._urls = urls
-    self._fvars = fvars
+    <span class="k">def</span> <span class="nf">_delegate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;REQUEST_METHOD&#39;</span><span class="p">]</span>
 
-def __call__(self, environ, start_response):
-    self._status = '200 OK' # 默认状态OK
-    del self.headers[:] # 清空上一次的headers
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urls</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^&#39;</span> <span class="o">+</span> <span class="n">pattern</span> <span class="o">+</span> <span class="s">&#39;$&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="c"># pass the matched groups as arguments to the function</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+                <span class="n">funcname</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="c"># 方法名大写（如GET、POST）</span>
+                <span class="n">klass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fvars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="c"># 根据字符串名称查找类对象</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
+                    <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">klass</span><span class="p">(),</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
-    result = self._delegate(environ)
-    start_response(self._status, self.headers)
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_notfound</span><span class="p">()</span>
 
-    # 将返回值result（字符串 或者 字符串列表）转换为迭代对象
-    if isinstance(result, basestring):
-        return iter([result])
-    else:
-        return iter(result)
+    <span class="k">def</span> <span class="nf">_notfound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="s">&#39;404 Not Found&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;Not Found</span><span class="se">\n</span><span class="s">&quot;</span>
 
-def _delegate(self, environ):
-    path = environ['PATH_INFO']
-    method = environ['REQUEST_METHOD']
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">header</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+</code></pre></div>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 
-    for pattern, name in self._urls:
-        m = re.match('^' + pattern + '$', path)
-        if m:
-            # pass the matched groups as arguments to the function
-            args = m.groups()
-            funcname = method.upper() # 方法名大写（如GET、POST）
-            klass = self._fvars.get(name) # 根据字符串名称查找类对象
-            if hasattr(klass, funcname):
-                func = getattr(klass, funcname)
-                return func(klass(), *args)
+<span class="sd">&quot;&quot;&quot;code.py&quot;&quot;&quot;</span>
 
-    return self._notfound()
+<span class="kn">from</span> <span class="nn">application</span> <span class="kn">import</span> <span class="n">my_app</span>
 
-def _notfound(self):
-    self._status = '404 Not Found'
-    self.header('Content-type', 'text/plain')
-    return &quot;Not Found\n&quot;
+<span class="n">urls</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="s">&quot;index&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;/hello/(.*)&quot;</span><span class="p">,</span> <span class="s">&quot;hello&quot;</span><span class="p">),</span>
+<span class="p">)</span>
 
-@classmethod
-def header(cls, name, value):
-    cls.headers.append((name, value))
-</code></pre>
+<span class="n">wsgiapp</span> <span class="o">=</span> <span class="n">my_app</span><span class="p">(</span><span class="n">urls</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
 
-<pre><code>
-</code></pre>
+<span class="k">class</span> <span class="nc">index</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">GET</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">my_app</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;Welcome!</span><span class="se">\n</span><span class="s">&quot;</span>
 
-<p>#!/usr/bin/env python</p>
+<span class="k">class</span> <span class="nc">hello</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">GET</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">my_app</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s">&#39;Content-type&#39;</span><span class="p">,</span> <span class="s">&#39;text/plain&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;Hello </span><span class="si">%s</span><span class="s">!</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">name</span>
 
-<h1 id="coding-utf-8-3">-<em>- coding: utf-8 -</em>-</h1>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">wsgiref.simple_server</span> <span class="kn">import</span> <span class="n">make_server</span>
+    <span class="n">httpd</span> <span class="o">=</span> <span class="n">make_server</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">8086</span><span class="p">,</span> <span class="n">wsgiapp</span><span class="p">)</span>
 
-<p>&rdquo;&ldquo;&ldquo;code.py&rdquo;&ldquo;&rdquo;</p>
+    <span class="n">sa</span> <span class="o">=</span> <span class="n">httpd</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">&#39;http://{0}:{1}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">sa</span><span class="p">)</span>
 
-<p>from application import my_app</p>
+    <span class="c"># Respond to requests until process is killed</span>
+    <span class="n">httpd</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+</code></pre></div>
 
-<p>urls = (
-    (&ldquo;/&rdquo;, &ldquo;index&rdquo;),
-    (&ldquo;/hello/(.*)&ldquo;, &ldquo;hello&rdquo;),
-)</p>
-
-<p>wsgiapp = my_app(urls, globals())</p>
-
-<p>class index:
-    def GET(self):
-        my_app.header(&lsquo;Content-type&rsquo;, &lsquo;text/plain&rsquo;)
-        return &ldquo;Welcome!\n&rdquo;</p>
-
-<p>class hello:
-    def GET(self, name):
-        my_app.header(&lsquo;Content-type&rsquo;, &lsquo;text/plain&rsquo;)
-        return &ldquo;Hello %s!\n&rdquo; % name</p>
-
-<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&lsquo;:
-    from wsgiref.simple_server import make_server
-    httpd = make_server(&ldquo;, 8086, wsgiapp)</p>
-
-<pre><code>sa = httpd.socket.getsockname()
-print 'http://{0}:{1}/'.format(*sa)
-
-# Respond to requests until process is killed
-httpd.serve_forever()
-</code></pre>
-
-<p>```
-这里的web server是用了 python自带的wsgiref，有兴趣的同学可以看一下他的源码实现，看看和我们自己实现的web server有多大的区别.推荐一篇大神写的文章<br />
+<p>这里的web server是用了 python自带的wsgiref，有兴趣的同学可以看一下他的源码实现，看看和我们自己实现的web server有多大的区别.推荐一篇大神写的文章<br />
 <a href="http://blog.csdn.net/on_1y/article/details/18818081">wsgiref 源代码分析</a></p>
 
 
