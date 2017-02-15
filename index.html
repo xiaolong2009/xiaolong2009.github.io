@@ -76,6 +76,8 @@
     
       
     
+      
+    
 
     <a class="sidebar-nav-item" href="https://github.com/xiaolong2009" target="_blank">GitHub</a>
   </nav>
@@ -135,6 +137,18 @@
     </div>
   
     <div class="post">
+        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/06/10/python-web-framework/">Python Web framework</a></h1>
+        <span class="post-date">Jun 10 2016</span>
+        上一篇博客说了wsgi的的内容，并简单编写了一个乞丐版的web framework，这次详细说一下怎么设计一个功能相对完善的web framework
+在开始看本篇博客前，需要先掌握cookie、session以及wsgi的内容，不然理解起来会比较吃力
+一个web框架需要包括如下几个功能 1. 定义全局的http错误、常用header字典、response状态码字典 2. 处理request、生成response header 即框架需要一个全局的request和response对象对resquest和response进行处理 3. url路由 即通过web server传递过来的环境变量信息，确定最终调用哪个函数来进行处理 4. 拦截器 即做请求的预处理 5. 模板引擎 即函数处理完成要在浏览器中展示，需要模板引擎进行渲染 6. 暴露一个WSGI入口处理函数给web server调用
+下面我们以廖雪峰实战篇里web框架为例，展开来看一下具体这些功能都是怎么实现的
+web.py 一共有1000行左右的代码，其实做的就是咱们说的这6个事情，下面一件一件来看
+==1 定义全局的http错误、常用header字典、response状态码字典==
+_RESPONSE_STATUSES = { # Informational 100: &#39;Continue&#39;, 101: &#39;Switching Protocols&#39;, 102: &#39;Processing&#39;, # Successful 200: &#39;OK&#39;, 201: &#39;Created&#39;, 202: &#39;Accepted&#39;, ... } # 匹配response 状态码 _RE_RESPONSE_STATUS = re.compile(r&#39;^\d{3}(\ \w+)?&#39;) _RESPONSE_HEADERS = ( &#39;Accept-Ranges&#39;, &#39;Age&#39;, &#39;Allow&#39;, &#39;Cache-Control&#39;, ... ) _RESPONSE_HEADER_DICT = dict(zip(map(lambda x: x.
+    </div>
+  
+    <div class="post">
         <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/05/16/django-save%E6%96%B9%E6%B3%95%E7%9A%84update_fields%E5%8F%82%E6%95%B0/">Django save方法的update_fields参数</a></h1>
         <span class="post-date">May 16 2016</span>
         <p>在Django中对Model对象的属性赋值，并使用save方法，save方法并不会检测Model对象变更了什么属性，而是会使用<code>update</code>语句set所有的field为当前的值，也就是说只修改了部分字段，也会update所有字段的值，这样会导致2个问题:</p>
@@ -169,92 +183,11 @@ session session是保存在服务端的会话控制，一般服务器会发送�
 def app(environ, start_response): &quot;&quot;&quot;A barebones WSGI application. This is a starting point for your own Web framework :) &quot;&quot;&quot; status = &#39;200 OK&#39; response_headers = [(&#39;Content-Type&#39;, &#39;text/plain&#39;)] start_response(status, response_headers) return [&#39;Hello world from a simple WSGI application!\n&#39;]   服务器程序  把应用程序需要的两个参数设置好，这里的两个参数指的是environ和start_response 调用应用程序 迭代访问应用程序的返回结果，并将其传回客户端
     </div>
   
-    <div class="post">
-        <h1 class="post-title"><a href="https://xiaolong2009.github.io/2016/03/11/django-model-trace-%E6%A8%A1%E5%9E%8B%E5%8F%98%E6%9B%B4%E8%B7%9F%E8%B8%AA/">Django Model Trace 模型变更跟踪</a></h1>
-        <span class="post-date">Mar 11 2016</span>
-        <p>在公司业务中有很多模块需要记录模型的变更历史，刚开始的时候会针对需要变更记录的表增加一个变更记录表，然后做针对性的开发。后来类似的需求多了，而且不需要很详细的记录，所以单独提取了一个比较简单的模型跟踪模块出来。</p>
-
-<h3 id="原理">原理</h3>
-
-<p>使用Django自己的信号实现，创建了一个公用的model跟踪表，所有配置跟踪的model变更记录都会保存到这张表中，通过一个公用的<code>trace_model</code>函数来保存变更的新老数据，而且只保存修改的字段。</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># coding=utf-8</span>
-
-<span class="kn">import</span> <span class="nn">inspect</span><span class="o">,</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">ManyToManyField</span><span class="p">,</span> <span class="n">ManyToOneRel</span>
-<span class="kn">from</span> <span class="nn">django.db.models.fields.related</span> <span class="kn">import</span> <span class="n">ForeignKey</span>
-<span class="kn">from</span> <span class="nn">raven.contrib.django.models</span> <span class="kn">import</span> <span class="n">client</span>
-<span class="kn">from</span> <span class="nn">models</span> <span class="kn">import</span> <span class="n">ModelRecord</span>
-
-
-<span class="k">def</span> <span class="nf">trace_model</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">using</span><span class="p">,</span> <span class="n">update_fields</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">adding</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-            <span class="k">return</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">sender</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
-        <span class="n">change_fields</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">sender</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_all_field_names</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;add_by&#39;</span><span class="p">,</span> <span class="s">&#39;add_dt&#39;</span><span class="p">,</span> <span class="s">&#39;update_by&#39;</span><span class="p">,</span> <span class="s">&#39;update_dt&#39;</span><span class="p">,</span> <span class="s">&#39;update_by_id&#39;</span><span class="p">):</span> <span class="c"># 更新人，添加人，时间不记录</span>
-                <span class="k">continue</span>
-            <span class="n">field</span> <span class="o">=</span> <span class="n">sender</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">auto_created</span> <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">hidden</span> <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">__class__</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ManyToManyField</span><span class="p">,</span> <span class="n">ManyToOneRel</span><span class="p">):</span> <span class="c"># 特殊的字段不记录</span>
-                <span class="k">continue</span>
-            <span class="n">old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="n">new</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">new</span><span class="p">):</span> <span class="c"># 不同类型的字段转为字符串，相等的不记录</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">):</span><span class="c"># 如果是外键</span>
-                <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">change_fields</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">old</span><span class="p">:</span>
-                        <span class="n">old</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">related_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">old</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
-                        <span class="n">new</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">related_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">new</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-                <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span><span class="o">+</span><span class="s">&#39;_id&#39;</span> <span class="ow">in</span> <span class="n">change_fields</span><span class="p">:</span>
-                    <span class="k">pass</span> <span class="c"># 判断避免同时对外键赋值的清空</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">continue</span>
-            <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">old</span><span class="p">:</span>
-                    <span class="n">old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;get_&#39;</span><span class="o">+</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&#39;_display&#39;</span><span class="p">,</span> <span class="n">old</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
-                    <span class="n">new</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s">&#39;get_&#39;</span><span class="o">+</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s">&#39;_display&#39;</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">old</span><span class="p">):</span>
-                    <span class="n">old</span> <span class="o">=</span> <span class="n">old</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">new</span><span class="p">):</span>
-                    <span class="n">new</span> <span class="o">=</span> <span class="n">new</span><span class="p">()</span>
-            <span class="n">old</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="k">if</span> <span class="n">old</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="s">&#39;空&#39;</span>
-            <span class="n">new</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="k">if</span> <span class="n">new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="s">&#39;空&#39;</span>
-            <span class="n">verbose_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s">&#39;verbose_name&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="n">change_fields</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">verbose_name</span><span class="p">,</span>
-                <span class="s">&#39;new&#39;</span><span class="p">:</span> <span class="n">new</span><span class="p">,</span>
-                <span class="s">&#39;old&#39;</span><span class="p">:</span> <span class="n">old</span>
-            <span class="p">}</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="s">&#39;_database&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;NAME&#39;</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">frame_record</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">frame_record</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get_response&#39;</span><span class="p">:</span>
-                <span class="n">request</span> <span class="o">=</span> <span class="n">frame_record</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span>
-                <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
-                <span class="k">break</span>
-        <span class="c"># 数据入库</span>
-        <span class="k">if</span> <span class="n">change_fields</span> <span class="ow">and</span> <span class="s">&#39;user&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
-            <span class="n">ModelRecord</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span>
-                                       <span class="n">table_name</span><span class="o">=</span><span class="n">sender</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">db_table</span><span class="p">,</span>
-                                       <span class="n">table_pk</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
-                                       <span class="n">content</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">change_fields</span><span class="p">),</span>
-                                       <span class="n">add_by</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="n">client</span><span class="o">.</span><span class="n">captureException</span><span class="p">()</span>
-</code></pre></div>
-
-<p></p>
-    </div>
-  
 </div>
 
 <div class="pagination">
   
-  <span class="pagination-item older">Older</span>
+  <a class="pagination-item older" href="https://xiaolong2009.github.io/page/2/">Older</a>
   
 
   
