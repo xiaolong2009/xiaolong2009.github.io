@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      tornado source code &middot; V2GO
+    
+  </title>
+
+  
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/poole.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/syntax.css">
+  <link rel="stylesheet" href="https://xiaolong2009.github.io/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.proxy.ustclug.org/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://xiaolong2009.github.io/assets/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="https://xiaolong2009.github.io/assets/favicon.ico">
+
+  
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="https://xiaolong2009.github.io/feed.xml">
+</head>
+
+
+  <body class="theme-base-0d">
+
+    
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>My notes and thoughts.</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/">Home</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/post">Posts</a>
+    <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/tags">Tags</a>
+
+    
+    
+      
+        <a class="sidebar-nav-item " href="https://xiaolong2009.github.io/about/">About</a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+
+    <a class="sidebar-nav-item" href="https://github.com/xiaolong2009" target="_blank">GitHub</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>&copy; 1. All rights reserved.</p>
+  </div>
+</div>
+
+
+    
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="https://xiaolong2009.github.io/" title="Home">V2GO</a>
+            <small>Way to Coding</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+
+
+<div class="post">
+  <h1 class="post-title">tornado source code</h1>
+  <span class="post-date">Oct 15 2016</span>
+  
+
+<p>tornado 即是一个高性能的web server，又是一个web framwork，而且web server 采用的是asynchronous IO的网络模型，是一种很高效的模型，那tornado是怎么完成这些工作的，带着疑问我看了一下tornado的2.0版本的源码</p>
+
+<p>在看tornado的源码之前还有些准备工作要做<br />
+1. IO多路复用-epoll<br />
+<a href="https://fukun.org/archives/10051470.html">https://fukun.org/archives/10051470.html</a><br />
+<a href="https://www.zhihu.com/question/32163005">https://www.zhihu.com/question/32163005</a></p>
+
+<ol>
+<li>Reactor模型<br />
+<a href="http://blog.csdn.net/u013074465/article/details/46276967">http://blog.csdn.net/u013074465/article/details/46276967</a></li>
+</ol>
+
+<p>tornado核心的几个部分如下
+- HTTPServer
+处理套接字的 listen/bind/accept。</p>
+
+<ul>
+<li><p>IOStream
+处理套接字的 read/write。</p></li>
+
+<li><p>HTTPConnection
+处理与 HTTP client 建立的连接，解析 HTTP Request 的 header 和 body。</p></li>
+
+<li><p>IOLoop
+I/O loop，循环取出可用的 fd，并调用对应的事件处理函数。</p></li>
+
+<li><p>RequestHandler
+处理请求，支持 GET/POST 等操作。</p>
+
+<h1 id="ioloop-py">ioloop.py</h1>
+
+<p>ioloop.py是典型的Reactor模型的实现，主要要看一下它的start方法里的核心调度过程。IOLoop 实例对象调用start后开始 epoll事件循环机制，该方法会一直运行直到 IOLoop 对象调用 stop 函数、当前所有事件循环完成。</p></li>
+</ul>
+
+<p>start方法中主要分三个部分：
+- 运行注册了的回调函数
+- 检查超时事件；
+- epoll 返回I/O事件的处理</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Starts the I/O loop.</span>
+
+<span class="sd">        The loop will run until one of the I/O handlers calls stop(), which</span>
+<span class="sd">        will make the loop stop after the current event iteration completes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stopped</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stopped</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="c"># Never use an infinite timeout here - it can stall epoll</span>
+            <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+            <span class="c"># Prevent IO event starvation by delaying new callbacks</span>
+            <span class="c"># to the next iteration of the event loop.</span>
+            <span class="n">callbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c"># 运行注册了的回调函数</span>
+            <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">callbacks</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">:</span>
+                <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="c"># 超时处理</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
+                <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="c"># the timeout was cancelled</span>
+                        <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">&lt;=</span> <span class="n">now</span><span class="p">:</span>
+                        <span class="n">timeout</span> <span class="o">=</span> <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">timeout</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">milliseconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">-</span> <span class="n">now</span>
+                        <span class="n">poll_timeout</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">milliseconds</span><span class="p">,</span> <span class="n">poll_timeout</span><span class="p">)</span>
+                        <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c"># clear alarm so it doesn&#39;t fire while poll is waiting for</span>
+                <span class="c"># events.</span>
+                <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="c"># epoll阻塞，当有事件通知或超时返回event_pairs</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">event_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="n">poll_timeout</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c"># Depending on python version and IOLoop implementation,</span>
+                <span class="c"># different exception types may be thrown and there are</span>
+                <span class="c"># two ways EINTR might be signaled:</span>
+                <span class="c"># * e.errno == errno.EINTR</span>
+                <span class="c"># * e.args is like (errno.EINTR, &#39;Interrupted system call&#39;)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s">&#39;errno&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EINTR</span> <span class="ow">or</span>
+                    <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span>
+                     <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EINTR</span><span class="p">)):</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="c"># Pop one fd at a time from the set of pending fds and run</span>
+            <span class="c"># its handler. Since that handler may perform actions on</span>
+            <span class="c"># other file descriptors, there may be reentrant calls to</span>
+            <span class="c"># this IOLoop that update self._events</span>
+            <span class="c"># 对epoll返回event_pairs事件的处理</span>
+            <span class="c"># _events中存储的是epoll_wait 执行后的待处理事件字典</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">event_pairs</span><span class="p">)</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span>
+                <span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">](</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">KeyboardInterrupt</span><span class="p">,</span> <span class="ne">SystemExit</span><span class="p">):</span>
+                    <span class="k">raise</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">),</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EPIPE</span><span class="p">:</span>
+                        <span class="c"># Happens when the client closes the connection</span>
+                        <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Exception in I/O handler for fd </span><span class="si">%d</span><span class="s">&quot;</span><span class="p">,</span>
+                                      <span class="n">fd</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Exception in I/O handler for fd </span><span class="si">%d</span><span class="s">&quot;</span><span class="p">,</span>
+                                  <span class="n">fd</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c"># reset the stopped flag so another start/stop pair can be issued</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stopped</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+
+<h1 id="iostream-py">iostream.py</h1>
+
+<p>IOStream主要提供的功能就是异步的读写操作,IOStream中定义了_read_buffer和_write_buffer，这样我们就不用直接读写socket，进而实现异步读写，这些操作都封装在IOStream类中。概括来说，IOStream对socket的读写做了一层封装，通过使用两个缓冲区，实现对socket的异步读写。<br />
+初始化的时候建立了两个buffer，然后把自己的socket放到了io_loop。这样，当这个socket有读写的时候，就会回调到注册的事件self._handle_events。_handle_events会根据事件的类型来判断是执行读还是写</p>
+
+<h1 id="httpserver-py">httpserver.py</h1>
+
+<p>在HTTPServer实例化过程中保存了处理请求的Application对象。调用listen方法，listen方法调用了2个方法
+- bind
+bind方法是 一个标准的服务器启动过程，先建立socket，然后bind listen，最后将socket加入到io_loop，注册的事件是ioloop.IOLoop.READ，也就是读事件。回调函数为_handle_events, 一旦listen socket可读, 说明客户端请求到来, 然后调用_handle_events接受客户端的请求
+- start</p>
+
+<pre><code>if not self.io_loop:
+    self.io_loop = ioloop.IOLoop.instance() # 创建 ioloop 对象
+for fd in self._sockets.keys(): # 把socket字典中所有的socket加入到ioloop handler列表中，并监听可读事件，回调函数为_handle_events
+    self.io_loop.add_handler(fd, self._handle_events, ioloop.IOLoop.READ)
+</code></pre>
+
+<p>然后来看一下_handle_events是怎么实现的</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">_handle_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+        <span class="c"># 当接受到服务端socket的可读事件时，建立连接</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c"># 客户端的socket, 以及客户端的地址</span>
+                <span class="n">connection</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sockets</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">errno</span><span class="o">.</span><span class="n">EWOULDBLOCK</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EAGAIN</span><span class="p">):</span>
+                    <span class="k">return</span>
+                <span class="k">raise</span>
+            <span class="o">...</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">stream</span> <span class="o">=</span> <span class="n">iostream</span><span class="o">.</span><span class="n">SSLIOStream</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">stream</span> <span class="o">=</span> <span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">)</span>
+                <span class="c"># 创建 HTTPonnection连接对象，处理http请求</span>
+                <span class="n">HTTPConnection</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">no_keep_alive</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xheaders</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error in connection callback&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div>
+
+<p>_handle_events方法实际上就是Reactor模型概率中的concrete event handler</p>
+
+<h1 id="httponnection">HTTPonnection</h1>
+
+<p>这个类用来处理http的请求，包括读取http请求头，读取post过来的数据，调用用户自定义的处理方法，以及把响应数据写给客户端socket。</p>
+
+<p>HTTPconnection中处理的过程是
+iostream通过socket.recv()把数据读入_read_buffer, 然后调用_read_from_buffer(), 当发现_read_buffer中有&rsquo;/r/n/r/n&rsquo;就会调用HTTPConnection._on_headers来处理http header，然后解析_read_buffer提取出http的method、version等信息生成_request，再根据Content-Length获取request body。调用application， 并把request作为参数传递，_request中已包含 Http Request中的所有信息，最后调用Application的_call__方法。</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">HTTPConnection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Handles a connection to an HTTP client, executing HTTP requests.</span>
+
+<span class="sd">    We parse HTTP headers and bodies, and execute the request callback</span>
+<span class="sd">    until the HTTP conection is closed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">request_callback</span><span class="p">,</span> <span class="n">no_keep_alive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">xheaders</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span> <span class="o">=</span> <span class="n">request_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_keep_alive</span> <span class="o">=</span> <span class="n">no_keep_alive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xheaders</span> <span class="o">=</span> <span class="n">xheaders</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request_finished</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c"># Save stack context here, outside of any request.  This keeps</span>
+        <span class="c"># contexts from one request from leaking into the next.</span>
+        <span class="c"># 发现_read_buffer中有&#39;/r/n/r/n&#39;就会调用HTTPConnection._on_headers来处理http header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header_callback</span> <span class="o">=</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_headers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n\r\n</span><span class="s">&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header_callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes a chunk of output to the stream.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="s">&quot;Request closed&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_write_complete</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finishes the request.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">,</span> <span class="s">&quot;Request closed&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request_finished</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">writing</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finish_request</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_on_write_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_finished</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finish_request</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_finish_request</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">no_keep_alive</span><span class="p">:</span>
+            <span class="n">disconnect</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">connection_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Connection&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">supports_http_1_1</span><span class="p">():</span>
+                <span class="n">disconnect</span> <span class="o">=</span> <span class="n">connection_header</span> <span class="o">==</span> <span class="s">&quot;close&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="s">&quot;Content-Length&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">headers</span>
+                    <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">method</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;HEAD&quot;</span><span class="p">,</span> <span class="s">&quot;GET&quot;</span><span class="p">)):</span>
+                <span class="n">disconnect</span> <span class="o">=</span> <span class="n">connection_header</span> <span class="o">!=</span> <span class="s">&quot;Keep-Alive&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">disconnect</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request_finished</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">disconnect</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n\r\n</span><span class="s">&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header_callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">native_str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;latin1&#39;</span><span class="p">))</span>
+            <span class="n">eol</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="n">start_line</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">eol</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">method</span><span class="p">,</span> <span class="n">uri</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="n">start_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">_BadRequestException</span><span class="p">(</span><span class="s">&quot;Malformed HTTP request line&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;HTTP/&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">_BadRequestException</span><span class="p">(</span><span class="s">&quot;Malformed HTTP version in HTTP Request-Line&quot;</span><span class="p">)</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">eol</span><span class="p">:])</span>
+            <span class="c"># 解析_read_buffer,生成_reqeust</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request</span> <span class="o">=</span> <span class="n">HTTPRequest</span><span class="p">(</span>
+                <span class="n">connection</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="n">uri</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">remote_ip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">content_length</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Content-Length&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">content_length</span><span class="p">:</span>
+                <span class="n">content_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">content_length</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">content_length</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">max_buffer_size</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">_BadRequestException</span><span class="p">(</span><span class="s">&quot;Content-Length too long&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Expect&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&quot;100-continue&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;HTTP/1.1 100 (Continue)</span><span class="se">\r\n\r\n</span><span class="s">&quot;</span><span class="p">)</span>
+                <span class="c"># 根据Content-Length获取request body</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="n">content_length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_request_body</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">_BadRequestException</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Malformed HTTP request from </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">e</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">_on_request_body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">content_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">method</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;POST&quot;</span><span class="p">,</span> <span class="s">&quot;PUT&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">):</span>
+                <span class="n">arguments</span> <span class="o">=</span> <span class="n">parse_qs_bytes</span><span class="p">(</span><span class="n">native_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">arguments</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">values</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                            <span class="n">values</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;multipart/form-data&quot;</span><span class="p">):</span>
+                <span class="n">fields</span> <span class="o">=</span> <span class="n">content_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;;&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                    <span class="n">k</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s">&quot;=&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&quot;boundary&quot;</span> <span class="ow">and</span> <span class="n">v</span><span class="p">:</span>
+                        <span class="n">httputil</span><span class="o">.</span><span class="n">parse_multipart_form_data</span><span class="p">(</span>
+                            <span class="n">utf8</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">data</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">arguments</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Invalid multipart/form-data&quot;</span><span class="p">)</span>
+        <span class="c"># 调用application， 并把request作为参数传递，_request中已包含 Http Request中的所有信息</span>
+        <span class="c"># 调用Application的__call__方法</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
+</code></pre></div>
+
+<h1 id="web-py">web.py</h1>
+
+<p>HTTPConnection在_on_request_body方法中调用到了Application的<strong>call</strong>方法，<strong>call</strong>方法中会匹配url，并调用RequestHandler._exexute()方法，在_execute中会执行具体的处理请求的业务方法。最后调用RequestHandler.flush() 通过iostream发送数据到客户端，一次请求就完成了。</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called by HTTPServer to execute the request.&quot;&quot;&quot;</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">]</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_host_handlers</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="o">...</span>
+        <span class="c"># 处理函数</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="n">transforms</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">handler</span>
+        
+<span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Executes this request with the given output transforms.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transforms</span> <span class="o">=</span> <span class="n">transforms</span>
+        <span class="k">with</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">ExceptionStackContext</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stack_context_handle_exception</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SUPPORTED_METHODS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">HTTPError</span><span class="p">(</span><span class="mi">405</span><span class="p">)</span>
+            <span class="c"># If XSRF cookies are turned on, reject form submissions without</span>
+            <span class="c"># the proper cookie</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;GET&quot;</span><span class="p">,</span> <span class="s">&quot;HEAD&quot;</span><span class="p">,</span> <span class="s">&quot;OPTIONS&quot;</span><span class="p">)</span> <span class="ow">and</span> \
+               <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;xsrf_cookies&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">check_xsrf_cookie</span><span class="p">()</span>
+            <span class="c"># 预处理的地方，可以重写来做一些预处理的工作，                </span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">decode_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode_argument</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">k</span><span class="p">))</span>
+                              <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+                <span class="c"># 具体执行的地方</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">())(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_finish</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">:</span>
+                    <span class="c"># 调用flush, 通过iostream发送数据到客户端</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+</code></pre></div>
+
+<p>tornado的源码大概就是这样，其中还有一些地方我也没有完全看懂，等以后再仔细研究。</p>
+
+
+
+</div>
+
+
+
+    <div class="ds-thread" data-thread-key="/2016/10/15/tornado-source-code/" data-title="tornado source code" data-url="https://xiaolong2009.github.io/2016/10/15/tornado-source-code/"></div>
+
+
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"Xiaolong"};
+    (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';ds.async = true;
+        ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0]
+         || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+    </script>
+
+
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  </body>
+</html>
+
