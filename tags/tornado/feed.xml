@@ -16,18 +16,17 @@
           <pubDate>Sat, 15 Oct 2016 11:46:53 CST</pubDate>
           <author>Xiaolong</author>
           <guid>https://xiaolong2009.github.io/2016/10/15/tornado-source-code/</guid>
-          <description>
+          <description>&lt;p&gt;tornado 即是一个高性能的web server，又是一个web framwork，而且web server 采用的是asynchronous IO的网络模型，是一种很高效的模型，那tornado是怎么完成这些工作的，带着疑问我看了一下tornado的2.0版本的源码&lt;/p&gt;
 
-&lt;p&gt;tornado 即是一个高性能的web server，又是一个web framwork，而且web server 采用的是asynchronous IO的网络模型，是一种很高效的模型，那tornado是怎么完成这些工作的，带着疑问我看了一下tornado的2.0版本的源码&lt;/p&gt;
-
-&lt;p&gt;在看tornado的源码之前还有些准备工作要做&lt;br /&gt;
-1. IO多路复用-epoll&lt;br /&gt;
-&lt;a href=&#34;https://fukun.org/archives/10051470.html&#34;&gt;https://fukun.org/archives/10051470.html&lt;/a&gt;&lt;br /&gt;
-&lt;a href=&#34;https://www.zhihu.com/question/32163005&#34;&gt;https://www.zhihu.com/question/32163005&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在看tornado的源码之前还有些准备工作要做&lt;/p&gt;
 
 &lt;ol&gt;
-&lt;li&gt;Reactor模型&lt;br /&gt;
-&lt;a href=&#34;http://blog.csdn.net/u013074465/article/details/46276967&#34;&gt;http://blog.csdn.net/u013074465/article/details/46276967&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;IO多路复用-epoll
+&lt;a href=&#34;https://fukun.org/archives/10051470.html&#34;&gt;https://fukun.org/archives/10051470.html&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&#34;https://www.zhihu.com/question/32163005&#34;&gt;https://www.zhihu.com/question/32163005&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Reactor模型
+&lt;a href=&#34;http://blog.csdn.net/u013074465/article/details/46276967&#34;&gt;http://blog.csdn.net/u013074465/article/details/46276967&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;tornado核心的几个部分如下
@@ -45,7 +44,8 @@
 I/O loop，循环取出可用的 fd，并调用对应的事件处理函数。&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;RequestHandler
-处理请求，支持 GET/POST 等操作。&lt;/p&gt;
+处理请求，支持 GET/POST 等操作。
+&lt;/p&gt;
 
 &lt;h1 id=&#34;ioloop-py&#34;&gt;ioloop.py&lt;/h1&gt;
 
@@ -319,13 +319,13 @@ iostream通过socket.recv()把数据读入_read_buffer, 然后调用_read_from_b
                 &lt;span class=&#34;k&#34;&gt;else&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
                     &lt;span class=&#34;n&#34;&gt;logging&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;warning&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;quot;Invalid multipart/form-data&amp;quot;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
         &lt;span class=&#34;c&#34;&gt;# 调用application， 并把request作为参数传递，_request中已包含 Http Request中的所有信息&lt;/span&gt;
-        &lt;span class=&#34;c&#34;&gt;# 调用Application的__call__方法&lt;/span&gt;
+        &lt;span class=&#34;c&#34;&gt;# 调用Application的`__call__`方法&lt;/span&gt;
         &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;request_callback&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_request&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;h1 id=&#34;web-py&#34;&gt;web.py&lt;/h1&gt;
 
-&lt;p&gt;HTTPConnection在_on_request_body方法中调用到了Application的&lt;strong&gt;call&lt;/strong&gt;方法，&lt;strong&gt;call&lt;/strong&gt;方法中会匹配url，并调用RequestHandler._exexute()方法，在_execute中会执行具体的处理请求的业务方法。最后调用RequestHandler.flush() 通过iostream发送数据到客户端，一次请求就完成了。&lt;/p&gt;
+&lt;p&gt;HTTPConnection在_on_request_body方法中调用到了Application的&lt;code&gt;__call__&lt;/code&gt;方法，&lt;code&gt;__call__&lt;/code&gt;方法中会匹配url，并调用RequestHandler._exexute()方法，在_execute中会执行具体的处理请求的业务方法。最后调用RequestHandler.flush() 通过iostream发送数据到客户端，一次请求就完成了。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;__call__&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;request&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
         &lt;span class=&#34;sd&#34;&gt;&amp;quot;&amp;quot;&amp;quot;Called by HTTPServer to execute the request.&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
         &lt;span class=&#34;n&#34;&gt;transforms&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;request&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;transforms&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
@@ -363,8 +363,7 @@ iostream通过socket.recv()把数据读入_read_buffer, 然后调用_read_from_b
                     &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;finish&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;tornado的源码大概就是这样，其中还有一些地方我也没有完全看懂，等以后再仔细研究。&lt;/p&gt;
-</description>
+&lt;p&gt;tornado的源码大概就是这样，其中还有一些地方我也没有完全看懂，等以后再仔细研究。&lt;/p&gt;</description>
         </item>
       
     

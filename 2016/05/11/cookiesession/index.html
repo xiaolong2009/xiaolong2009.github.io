@@ -108,11 +108,11 @@
 <div class="post">
   <h1 class="post-title">cookie&amp;session</h1>
   <span class="post-date">May 11 2016</span>
-  
-
-<blockquote>
+  <blockquote>
 <p>因为http是无状态的协议，所以就需要有一套机制来保持用户的状态，比如用户的登录状态。这个机制其实就是借助cookie和session来完成的</p>
 </blockquote>
+
+<p></p>
 
 <h1 id="cookie">cookie</h1>
 
@@ -140,7 +140,6 @@
 
 <p>拿登录请求为例，用户在登录页面输入用户名和密码，程序在后台验证用户的密码正确后，会按照一定的加密算法生成一个字符串，并通过在response的header中添加set-cookie来设置cookie，一般来说这个cookie的key是sessionid（当然名字是可以修改的不一定是sessionid），value就是加密后的字符串，这样在下次请求的header中就带有这样的一条cookie <code>sessionid=evt6iw35306xdzqu2xcdzfm8894h9cik</code>。程序后台会有一个表来存储session，表中一般会有session_key、 session_data、expire_date等字段。在下次请求时，程序就会拿到evt6iw35306xdzqu2xcdzfm8894h9cik，并查找session_key为evt6iw35306xdzqu2xcdzfm8894h9cik的session_data的值，进而解密出用户的信息，要是表中存在session_key为evt6iw35306xdzqu2xcdzfm8894h9cik的行，证明有这个用户，不存在就证明没有这个用户。
 另外session也不一定是存在数据库里，存在memecache或者redis里甚至文件里都是可以的。</p>
-
 
 
 </div>

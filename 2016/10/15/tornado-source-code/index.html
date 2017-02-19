@@ -108,18 +108,17 @@
 <div class="post">
   <h1 class="post-title">tornado source code</h1>
   <span class="post-date">Oct 15 2016</span>
-  
+  <p>tornado 即是一个高性能的web server，又是一个web framwork，而且web server 采用的是asynchronous IO的网络模型，是一种很高效的模型，那tornado是怎么完成这些工作的，带着疑问我看了一下tornado的2.0版本的源码</p>
 
-<p>tornado 即是一个高性能的web server，又是一个web framwork，而且web server 采用的是asynchronous IO的网络模型，是一种很高效的模型，那tornado是怎么完成这些工作的，带着疑问我看了一下tornado的2.0版本的源码</p>
-
-<p>在看tornado的源码之前还有些准备工作要做<br />
-1. IO多路复用-epoll<br />
-<a href="https://fukun.org/archives/10051470.html">https://fukun.org/archives/10051470.html</a><br />
-<a href="https://www.zhihu.com/question/32163005">https://www.zhihu.com/question/32163005</a></p>
+<p>在看tornado的源码之前还有些准备工作要做</p>
 
 <ol>
-<li>Reactor模型<br />
-<a href="http://blog.csdn.net/u013074465/article/details/46276967">http://blog.csdn.net/u013074465/article/details/46276967</a></li>
+<li><p>IO多路复用-epoll
+<a href="https://fukun.org/archives/10051470.html">https://fukun.org/archives/10051470.html</a><br />
+<a href="https://www.zhihu.com/question/32163005">https://www.zhihu.com/question/32163005</a></p></li>
+
+<li><p>Reactor模型
+<a href="http://blog.csdn.net/u013074465/article/details/46276967">http://blog.csdn.net/u013074465/article/details/46276967</a></p></li>
 </ol>
 
 <p>tornado核心的几个部分如下
@@ -137,7 +136,8 @@
 I/O loop，循环取出可用的 fd，并调用对应的事件处理函数。</p></li>
 
 <li><p>RequestHandler
-处理请求，支持 GET/POST 等操作。</p>
+处理请求，支持 GET/POST 等操作。
+</p>
 
 <h1 id="ioloop-py">ioloop.py</h1>
 
@@ -411,13 +411,13 @@ iostream通过socket.recv()把数据读入_read_buffer, 然后调用_read_from_b
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Invalid multipart/form-data&quot;</span><span class="p">)</span>
         <span class="c"># 调用application， 并把request作为参数传递，_request中已包含 Http Request中的所有信息</span>
-        <span class="c"># 调用Application的__call__方法</span>
+        <span class="c"># 调用Application的`__call__`方法</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
 </code></pre></div>
 
 <h1 id="web-py">web.py</h1>
 
-<p>HTTPConnection在_on_request_body方法中调用到了Application的<strong>call</strong>方法，<strong>call</strong>方法中会匹配url，并调用RequestHandler._exexute()方法，在_execute中会执行具体的处理请求的业务方法。最后调用RequestHandler.flush() 通过iostream发送数据到客户端，一次请求就完成了。</p>
+<p>HTTPConnection在_on_request_body方法中调用到了Application的<code>__call__</code>方法，<code>__call__</code>方法中会匹配url，并调用RequestHandler._exexute()方法，在_execute中会执行具体的处理请求的业务方法。最后调用RequestHandler.flush() 通过iostream发送数据到客户端，一次请求就完成了。</p>
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called by HTTPServer to execute the request.&quot;&quot;&quot;</span>
         <span class="n">transforms</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">]</span>
@@ -456,7 +456,6 @@ iostream通过socket.recv()把数据读入_read_buffer, 然后调用_read_from_b
 </code></pre></div>
 
 <p>tornado的源码大概就是这样，其中还有一些地方我也没有完全看懂，等以后再仔细研究。</p>
-
 
 
 </div>
